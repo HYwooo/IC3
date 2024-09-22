@@ -1,6 +1,6 @@
 //KeyScan.sv
 //KEY 1~4 对应 四位二进制输入(KEY1->MSB)，用于控制 7 段数码管的显示内容 
-//KEY88->key[0],KEY84->key[1],KEY81->key[2],KEY80->key[3],KEY83->key[4],KEY82->key[5]
+//KEY85->key[0],KEY84->key[1],KEY81->key[2],KEY80->key[3],KEY83->key[4],KEY82->key[5]
 `timescale 1ns / 1ns
 module KeyScan #(
     parameter F_CLK = 50000000,
