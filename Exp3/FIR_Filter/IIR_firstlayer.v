@@ -1,11 +1,8 @@
-// 输 出 y[n]=0.5*x[n]+0.31*x[n-1]+0.63*x[n-2] 。 其中x[n],x[n-1],x[n-2]为 3 位二进制整数，计算结果用十进制数显示、保留一位小数
-//      100y[n]=50x[n]+31x[n-1]+63x[n-2]    
-//*****************************************************
-module FIR_Filter(
+module IIR_firstlayer (
         input sys_clk, // 系统时钟
-        input sys_rst_n, // 复位键，低电平有效
-        input signed [2:0] Xin, // 滤波器的输入数据，输入速率
-        output signed [2:0] Yout // 滤波器的输出数据
+        input sys_rst, // 复位键，低电平有效
+        input signed [11:0] Xin, // 滤波器的输入数据，输入速率
+        output signed [11:0] Yout // 滤波器的输出数据
 );
 //*****************************************************
 // 零点系数的实现
@@ -13,8 +10,8 @@ module FIR_Filter(
 // 设置两个寄存器表示 x(n-1) 和 x(n-2)
 reg signed[11:0] Xin0,Xin1, Xin2;
 // 将输入数据存入移位寄存器中
-always @(posedge sys_clk_n or negedge sys_rst_n)
-    if (!sys_rst_n)
+always @(posedge sys_clk or negedge sys_rst)
+    if (!sys_rst)
         begin
             Xin0 <= 12'd0;
             Xin1 <= 12'd0;
@@ -50,8 +47,8 @@ assign Xout = XMult0 + XMult1 + XMult2;
 
 
 reg signed[11:0] Yout1, Yout2;
-always @(posedge sys_clk or negedge sys_rst_n)
-    if (!sys_rst_n)
+always @(posedge sys_clk or negedge sys_rst)
+    if (!sys_rst)
         begin
             Yout1 <= 12'd0;
             Yout2 <= 12'd0;
