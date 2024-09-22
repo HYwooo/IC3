@@ -2,21 +2,21 @@
 
 module Divider_tb;
   logic clk;
-  logic rst;
+  logic rst_n;
   wire  clk_div;
   Divider uut (
       clk,
-      rst,
+      rst_n,
       clk_div
   );
 
-  initial forever #5 clk = ~clk;
-  initial begin
-    clk <= 0;
-    rst <= 1;
 
-    #10 rst <= 0;
+  initial begin
+    clk   <= 0;
+    rst_n <= 0;
+    #10 rst_n <= 1;
 
     #1000 $finish;
   end
+  initial forever #10 clk = ~clk;
 endmodule : Divider_tb
