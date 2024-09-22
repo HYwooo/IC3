@@ -1,3 +1,5 @@
+//LEC_Scan.sv
+//1kHz扫描全部8个数码管，每秒更新一次输出
 `timescale 1ns / 1ns
 module LED_Scan #(
     parameter F_CLK  = 50000000,
@@ -12,14 +14,13 @@ module LED_Scan #(
   logic clk_1kHz;  //1kHz
   logic clk_1Hz;
   logic [2:0] cs_pointer;  //计数器0~7
-  //扫描片选
+  //1kHz扫描片选
   always @(posedge clk_1kHz or negedge rst_n) begin
     if (!rst_n) begin
-      cs <= 8'hFF;  //全选
+      cs_pointer <= 0;
     end else begin
       if (&cs_pointer) cs_pointer <= 0;  //pointer按位与 -> 全1则重置为0
       else cs_pointer <= cs_pointer + 1;
-
     end
   end
   //同步赋值
@@ -34,21 +35,7 @@ module LED_Scan #(
       end
     end
   end
-  //异步片选
-  always @(*) begin
-    //async one-hot chip select 
-    case (cs_pointer)
-      3'd0: cs <= 8'b0000_0001;
-      3'd1: cs <= 8'b0000_0010;
-      3'd2: cs <= 8'b0000_0100;
-      3'd3: cs <= 8'b0000_1000;
-      3'd4: cs <= 8'b0001_0000;
-      3'd5: cs <= 8'b0010_0000;
-      3'd6: cs <= 8'b0100_0000;
-      3'd7: cs <= 8'b1000_0000;
-      default: cs <= 8'b1111_1111;
-    endcase
-  end
+  //分频产生1kHz信号
   Divider #(
       .DIV_NUM(F_CLK / F_SCAN),
       .DUTY(F_CLK / F_SCAN / 2)
@@ -57,6 +44,7 @@ module LED_Scan #(
       .rst_n(rst_n),
       .clk_div(clk_1kHz)
   );
+  //分频产生1Hz信号
   Divider #(
       .DIV_NUM(1000),
       .DUTY(500)
@@ -65,9 +53,18 @@ module LED_Scan #(
       .rst_n(rst_n),
       .clk_div(clk_1Hz)
   );
-
+  //LED片选信号
+  LED_CS LED_CS_inst (
+      .clk(clk),
+      .rst_n(rst_n),
+      .cs_pointer(cs_pointer),
+      .cs(cs)
+  );
+  //LED译码器
   LED_Decoder LED_Decoder_inst (
-      .dig_ctrl (dig_ctrl),
+      .clk(clk),
+      .rst_n(rst_n),
+      .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)
   );
 endmodule
