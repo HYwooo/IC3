@@ -4,7 +4,7 @@
 `timescale 1ns / 1ns
 module KeyScan #(
     parameter F_CLK = 50000000,
-    parameter F_CLK_DIV = 1000
+    parameter F_CLK_SLOW = 1000
 ) (
     input clk,
     input rst_n,
@@ -54,8 +54,8 @@ module KeyScan #(
   );
 
   Divider #(
-      .DIV_NUM(F_CLK / F_CLK_DIV),
-      .DUTY(F_CLK / F_CLK_DIV / 2)
+      .DIV_NUM(F_CLK / F_CLK_SLOW),
+      .DUTY(F_CLK / F_CLK_SLOW / 2)
   ) CLK50Mto1k (
       .clk(clk),
       .rst_n(rst_n),
