@@ -26,12 +26,12 @@ module ButtonDebouncer #(
   always @(posedge clk_1kHz or negedge rst_n) begin
     if (!rst_n) begin
       state <= STATE_IDLE;
-      next_state <= STATE_IDLE;
     end else state <= next_state;
   end
   always @(posedge clk_1kHz or negedge rst_n) begin
     if (!rst_n) begin
       cnt <= 0;
+      next_state <= STATE_IDLE;
     end else begin
       if (state == STATE_IDLE) begin
         if (!key) begin

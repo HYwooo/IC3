@@ -12,11 +12,12 @@ module KeyScan #(
     output reg [7:0] cs,  //片选信号
     output reg [7:0] o_dig_sel
 );
-  logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
+  logic [4:0] dig_ctrl_n, dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //计数器0~7
   logic clk_1kHz;
   logic key82;
   reg state = 0;
+  assign dig_ctrl = ~dig_ctrl_n;
   always @(negedge key82) begin
     state = ~state;
   end
@@ -40,7 +41,7 @@ module KeyScan #(
           .clk(clk),
           .rst_n(rst_n),
           .key(key[i]),
-          .key_state((~dig_ctrl[i]))
+          .key_state(dig_ctrl_n[i])
       );
     end
   endgenerate
