@@ -21,30 +21,29 @@ module LED_Scan #(
       end else begin
         cs_pointer++;
       end
-
+      //sync one-hot chip select 
+      case (cs_pointer)
+        3'd0: cs <= 8'b00000001;
+        3'd1: cs <= 8'b00000010;
+        3'd2: cs <= 8'b00000100;
+        3'd3: cs <= 8'b00001000;
+        3'd4: cs <= 8'b00010000;
+        3'd5: cs <= 8'b00100000;
+        3'd6: cs <= 8'b01000000;
+        3'd7: cs <= 8'b10000000;
+        default: cs <= 8'b11111111;
+      endcase
     end
 
   end
-  //one-hot chip select
-  always @(*) begin
-    case (cs_pointer)
-      3'd0: cs <= 8'b00000001;
-      3'd1: cs <= 8'b00000010;
-      3'd2: cs <= 8'b00000100;
-      3'd3: cs <= 8'b00001000;
-      3'd4: cs <= 8'b00010000;
-      3'd5: cs <= 8'b00100000;
-      3'd6: cs <= 8'b01000000;
-      3'd7: cs <= 8'b10000000;
-      default: cs <= 8'b11111111;
-    endcase
-  end
+  
+ 
   Divider #(
       .DIV_NUM(F_CLK / F_SCAN),
       .DUTY(F_CLK / F_SCAN / 2)
   ) Divider_inst (
       .clk(clk),
-      .rst(rst_n),
+      .rst_n(rst_n),
       .clk_div(clk_div)
   );
 
