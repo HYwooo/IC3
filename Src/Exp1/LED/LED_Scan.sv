@@ -26,7 +26,7 @@ module LED_Scan #(
   //同步赋值
   always @(posedge clk_1Hz or negedge rst_n) begin
     if (!rst_n) begin
-      dig_ctrl <= 5'h1_8;
+      dig_ctrl <= 5'h1_7;
     end else begin
       if (dig_ctrl == 5'b11111) begin
         dig_ctrl <= 5'b0_0000;
