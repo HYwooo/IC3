@@ -15,7 +15,7 @@ module KeyToFreq #(
   bit [2:0] cs_pointer = 'b0;  //0~7
   bit [5:0] key_state;
 
-  bit clk_alt,clk_100Hz;
+  bit clk_alt, clk_100Hz;
   bit led_blink = 0;
   bit unsigned [$clog2(1000)-1:0] cnt = 'b0, cycle = 'd1000;
 
@@ -32,15 +32,7 @@ module KeyToFreq #(
   assign dignits[7] = cycle % 10;
 
 
-  bit cycle_u_state, cycle_d_state;  //频率增减状态
-  always @(posedge clk_alt or negedge key_state[0]) begin
-    if (!key_state[0]) cycle_u_state <= 1;
-    else cycle_u_state <= 0;
-  end
-  always @(posedge clk_alt or negedge key_state[5]) begin
-    if (!key_state[5]) cycle_d_state <= 1;
-    else cycle_d_state <= 0;
-  end
+
   //组合逻辑实现
   always @(*) begin
     if (!rst_n) begin
@@ -59,13 +51,17 @@ module KeyToFreq #(
       else cs_pointer <= cs_pointer + 1;
     end
   end
-
   //频率变化
-  always @(posedge clk_100Hz or negedge rst_n) begin
-    if (!rst_n) cycle <= 1000;
-    else begin
-      if (cycle_d_state) cycle <= ((cycle - 'd50) >= 'd50) ? (cycle - 'd50) : 50;
-      else if (cycle_u_state) cycle <= (cycle + 'd50 <= 1000) ? cycle + 'd50 : 1000;
+  bit [5:0] laststate = 'b1;
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      laststate <= 'b11;
+      cycle <= 'd1000;
+    end else begin
+      if ((laststate[0] & !key_state[0]) && (cycle + 'd50) <= 'd1000) cycle <= cycle + 'd50;
+      if ((laststate[5] & !key_state[5]) && (cycle - 'd50) >= 'd50) cycle <= cycle - 'd50;
+      laststate[0] <= key_state[0];
+      laststate[5] <= key_state[5];
       f_clk_alt <= 100000 / cycle;
     end
   end
