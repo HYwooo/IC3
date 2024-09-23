@@ -7,9 +7,7 @@ module Divider #(
     input rst_n,
     output logic clk_div
 );
-
   logic [$clog2(DIV_NUM)-1:0] cnt;
-
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       cnt <= 'd0;

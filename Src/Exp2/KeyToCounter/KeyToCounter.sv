@@ -20,8 +20,8 @@ module KeyToCounter #(
   logic [2:0] cs_pointer;  //0~7
   logic [5:0] key_state;
   bit clk_1kHz, display_state = 0;
+  bit [1:0] laststate = 'b1;
 
-  bit [1:0] laststate = 'b11;
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       laststate <= 'b11;
@@ -37,7 +37,7 @@ module KeyToCounter #(
     display_state <= ~display_state;
   end
 
-  //1kHz扫描片选
+  //1kHz扫描片选信号
   always @(posedge clk_1kHz or negedge rst_n) begin
     if (!rst_n) begin
       cs_pointer <= 0;
@@ -50,6 +50,7 @@ module KeyToCounter #(
       end
     end
   end
+
   generate
     genvar i;
     for (i = 0; i < 6; i = i + 1) begin : Gen_ButtonDebouncer
@@ -61,6 +62,7 @@ module KeyToCounter #(
       );
     end
   endgenerate
+
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)

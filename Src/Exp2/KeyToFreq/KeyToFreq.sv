@@ -20,25 +20,25 @@ module KeyToFreq #(
   bit unsigned [$clog2(1000)-1:0] cnt = 'b0, cycle = 'd1000;
 
   logic [$clog2(100000)-1:0] f_clk_alt;
-  bit [4:0] dignits[7:0];
+  bit [4:0] digits[7:0];
 
-  assign dignits[0] = f_clk_alt / 1000;  //数字最高位在显示的左侧
-  assign dignits[1] = ((f_clk_alt % 1000) / 100) | 5'b1_0000;  //加上小数点//
-  assign dignits[2] = (f_clk_alt % 100) / 10;
-  assign dignits[3] = f_clk_alt % 10;
-  assign dignits[4] = cycle / 1000;
-  assign dignits[5] = ((cycle % 1000) / 100);
-  assign dignits[6] = (cycle % 100) / 10;
-  assign dignits[7] = cycle % 10;
+  assign digits[0] = f_clk_alt / 1000;  //数字最高位在显示的左侧
+  assign digits[1] = ((f_clk_alt % 1000) / 100) | 5'b1_0000;  //加上小数点//
+  assign digits[2] = (f_clk_alt % 100) / 10;
+  assign digits[3] = f_clk_alt % 10;
+  assign digits[4] = cycle / 1000;
+  assign digits[5] = ((cycle % 1000) / 100);
+  assign digits[6] = (cycle % 100) / 10;
+  assign digits[7] = cycle % 10;
 
 
 
-  //组合逻辑实现
+  //组合逻辑实现pointer到译码器的映射
   always @(*) begin
     if (!rst_n) begin
       dig_ctrl = 'b0;
     end else begin
-      dig_ctrl = dignits[cs_pointer];
+      dig_ctrl = digits[cs_pointer];
     end
   end
 

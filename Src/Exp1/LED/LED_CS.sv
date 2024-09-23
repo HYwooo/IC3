@@ -3,11 +3,11 @@
 module LED_CS (
     input rst_n,
     input [2:0] cs_pointer,
-    output logic[7:0] cs
+    output logic [7:0] cs
 );
   always @(*) begin
     if (!rst_n) begin
-      cs = 8'hFF;
+      cs = 8'hFF;  //全选
     end else begin
       case (cs_pointer)
         3'd0: cs = 8'b0000_0001;

@@ -19,18 +19,18 @@ module DigitalClock #(
   bit [$clog2(60)-1:0] ss;
   bit [$clog2(60)-1:0] mm;
   bit [$clog2(24)-1:0] hh;
-  bit [$clog2(99)-1:0] dignits[7:0];
+  bit [$clog2(99)-1:0] digits[7:0];
   logic [7:0] o_dig_sel_wo_dot;
-  assign dignits[0] = hh / 10;
-  assign dignits[1] = hh % 10;
-  assign dignits[2] = 0;
-  assign dignits[3] = mm / 10;
-  assign dignits[4] = mm % 10;
-  assign dignits[5] = 0;
-  assign dignits[6] = ss / 10;
-  assign dignits[7] = ss % 10;
+  assign digits[0] = hh / 10;
+  assign digits[1] = hh % 10;
+  assign digits[2] = 0;
+  assign digits[3] = mm / 10;
+  assign digits[4] = mm % 10;
+  assign digits[5] = 0;
+  assign digits[6] = ss / 10;
+  assign digits[7] = ss % 10;
 
-//////*************/
+//////*************/没写完
   bit [5:0] laststate = 'b1;
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -53,7 +53,7 @@ module DigitalClock #(
     if (!rst_n) begin
       dig_ctrl = 'b0;
     end else begin
-      dig_ctrl = dignits[cs_pointer];
+      dig_ctrl = digits[cs_pointer];
       if (cs_pointer & 'b0010_0100) o_dig_sel = 'h10;
       else o_dig_sel = o_dig_sel_wo_dot;
     end

@@ -11,10 +11,10 @@ module ButtonDebouncer #(
 );
   logic clk_1kHz;
 
-  localparam STATE_IDLE = 1'd0,  // initial state
-  STATE_PRESSED = 1'd1;
+  localparam STATE_IDLE = 1'd0, STATE_PRESSED = 1'd1;
   logic state, next_state;
   logic [4:0] cnt;
+  //FSM
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       state <= STATE_IDLE;

@@ -10,9 +10,8 @@ module LED_Scan #(
     output reg [7:0] cs,  //片选信号
     output reg [7:0] o_dig_sel
 );
+  logic clk_1Hz, clk_1kHz;
   logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
-  logic clk_1kHz;  //1kHz
-  logic clk_1Hz;
   logic [2:0] cs_pointer;  //计数器0~7
   //1kHz扫描片选
   always @(posedge clk_1kHz or negedge rst_n) begin
@@ -55,14 +54,14 @@ module LED_Scan #(
   );
   //LED片选信号
   LED_CS LED_CS_inst (
-      
+
       .rst_n(rst_n),
       .cs_pointer(cs_pointer),
       .cs(cs)
   );
   //LED译码器
   LED_Decoder LED_Decoder_inst (
-      
+
       .rst_n(rst_n),
       .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)
