@@ -9,17 +9,18 @@ module KeyScan #(
     input clk,
     input rst_n,
     input [5:0] key,
-    output reg [7:0] cs,  //片选信号
-    output reg [7:0] o_dig_sel
+    output logic [7:0] cs,  //片选信号
+    output logic [7:0] o_dig_sel
 );
   logic [4:0] dig_ctrl_n, dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
-  logic [2:0] cs_pointer;  //计数器0~7
-  logic clk_1kHz;
-  logic key82;
-  reg state = 0;
   assign dig_ctrl = ~dig_ctrl_n;
+  logic [2:0] cs_pointer;  //片选指针 0~7
+  logic clk_1kHz;
+  /************/
+  logic key82;
+  bit state = 0;  //切换显示状态 1:全显示 0:单个显示
   always @(negedge key82) begin
-    state = ~state;
+    state <= ~state;
   end
   //1kHz扫描片选
   always @(posedge clk_1kHz or negedge rst_n) begin
@@ -62,13 +63,11 @@ module KeyScan #(
       .clk_div(clk_1kHz)
   );
   LED_CS LED_CS_inst (
-      .clk(clk),
       .rst_n(rst_n),
       .cs_pointer(cs_pointer),
       .cs(cs)
   );
   LED_Decoder LED_Decoder_inst (
-      .clk(clk),
       .rst_n(rst_n),
       .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)

@@ -6,8 +6,9 @@ module LED_Decoder_tb;
 
   // Instantiate the DUT (Device Under Test)
   LED_Decoder dut (
-      .seg_ctrl(seg_ctrl_tb),
-      .seg_valid_out(seg_valid_out_tb)
+      .rst_n(1),
+      .dig_ctrl(seg_ctrl_tb),
+      .o_dig_sel(seg_valid_out_tb)
   );
 
   // Test procedure
