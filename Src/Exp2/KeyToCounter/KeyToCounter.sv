@@ -11,30 +11,38 @@ module KeyToCounter #(
     input clk,
     input rst_n,
     input logic [5:0] key,
-
+    output logic [3:0] led,
     output logic [7:0] cs,  //片选信号
     output logic [7:0] o_dig_sel
 );
 
-  bit   [4:0] dig_ctrl = 5'h08;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
+  bit   [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
   logic [5:0] key_state;
-  bit clk_1kHz, state = 0;
+  bit clk_1kHz, display_state = 0;
+
+  bit [1:0] laststate = 'b11;
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      laststate <= 'b11;
+      dig_ctrl  <= 'b0;
+    end else begin
+      if ((laststate[0] & !key_state[0]) && dig_ctrl < 'd15) dig_ctrl <= dig_ctrl + 5'h01;
+      if ((laststate[1] & !key_state[1]) && dig_ctrl > 'd0) dig_ctrl <= dig_ctrl - 5'h01;
+      laststate[0] <= key_state[0];
+      laststate[1] <= key_state[1];
+    end
+  end
   always @(negedge key_state[5]) begin
-    state <= ~state;
+    display_state <= ~display_state;
   end
-  always @(negedge key_state[0]) begin
-    if (dig_ctrl <= 15) dig_ctrl++;
-  end
-  always @(negedge key_state[1]) begin
-    if (dig_ctrl >= 0) dig_ctrl--;
-  end
+
   //1kHz扫描片选
   always @(posedge clk_1kHz or negedge rst_n) begin
     if (!rst_n) begin
       cs_pointer <= 0;
     end else begin
-      if (state == 1) begin
+      if (display_state == 1) begin
         if (&cs_pointer) cs_pointer <= 0;  //pointer按位与 -> 全1则重置为0
         else cs_pointer <= cs_pointer + 1;
       end else begin

@@ -15,7 +15,7 @@ module ButtonDebouncer #(
   STATE_PRESSED = 1'd1;
   logic state, next_state;
   logic [4:0] cnt;
-  always @(posedge clk_1kHz or negedge rst_n) begin
+  always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       state <= STATE_IDLE;
     end else state <= next_state;
