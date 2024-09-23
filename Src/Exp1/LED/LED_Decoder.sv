@@ -9,7 +9,7 @@ module LED_Decoder (
   assign o_dig_sel = ~seg_valid;  //共阴极转共阳极
   always @(*) begin
     if (!rst_n) begin
-      seg_valid <= 'h00;  //全灭
+      seg_valid = 'h00;  //全灭
     end else begin
       case (dig_ctrl)
         5'h00:   seg_valid = 8'h3f;  //"0"

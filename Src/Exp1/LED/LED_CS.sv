@@ -7,7 +7,7 @@ module LED_CS (
 );
   always @(*) begin
     if (!rst_n) begin
-      cs <= 8'hFF;
+      cs = 8'hFF;
     end else begin
       case (cs_pointer)
         3'd0: cs = 8'b0000_0001;

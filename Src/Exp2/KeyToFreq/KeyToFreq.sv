@@ -15,19 +15,9 @@ module KeyToFreq #(
   logic [2:0] cs_pointer;  //0~7
   logic [5:0] key_state;
 
-  bit freq_u_state, freq_d_state;  //频率增减状态
-  always @(negedge key_state[0]) begin
-    freq_u_state <= 1;
-  end
-  always @(negedge key_state[5]) begin
-    freq_d_state <= 1;
-  end
-
   logic clk_alt;
-  bit   led_blink = 0;
+  bit led_blink = 0;
   logic [$clog2(1000)-1:0] cnt, cycle;
-  //logic clk_1kHz;
-
 
   logic [$clog2(100000)-1:0] f_clk_alt;
   logic [4:0] dignits[3:0];
@@ -37,16 +27,26 @@ module KeyToFreq #(
   assign dignits[2] = (f_clk_alt % 100) / 10;
   assign dignits[3] = f_clk_alt % 10;
 
-  always @(posedge clk_alt or negedge rst_n) begin
+  bit cycle_u_state, cycle_d_state;  //频率增减状态
+  always @(posedge clk_alt or negedge key_state[0]) begin
+    if (!key_state[0]) cycle_u_state <= 1;
+    else cycle_u_state <= 0;
+  end
+  always @(posedge clk_alt or negedge key_state[5]) begin
+    if (!key_state[5]) cycle_d_state <= 1;
+    else cycle_d_state <= 0;
+  end
+  //组合逻辑实现
+  always @(*) begin
     if (!rst_n) begin
-      dig_ctrl <= 'b0;
+      dig_ctrl = 'b0;
     end else begin
       case (cs_pointer)
-        3'b000:  dig_ctrl <= dignits[0];
-        3'b001:  dig_ctrl <= dignits[1];
-        3'b010:  dig_ctrl <= dignits[2];
-        3'b011:  dig_ctrl <= dignits[3];
-        default: dig_ctrl <= 'b0;
+        3'b000:  dig_ctrl = dignits[0];
+        3'b001:  dig_ctrl = dignits[1];
+        3'b010:  dig_ctrl = dignits[2];
+        3'b011:  dig_ctrl = dignits[3];
+        default: dig_ctrl = 'b0;
       endcase
     end
   end
@@ -62,17 +62,12 @@ module KeyToFreq #(
   end
 
   //频率变化
-  always @(posedge clk_alt or negedge rst_n) begin
+  always @(posedge cycle_u_state or posedge cycle_d_state or negedge rst_n) begin
     if (!rst_n) cycle <= 1000;
     else begin
-      if (freq_u_state) begin
-        freq_u_state <= 0;
-        if (cycle < 901) cycle <= cycle + 100;
-        else if (freq_d_state) begin
-          freq_d_state <= 0;
-          if (cycle > 199) cycle <= cycle - 100;
-        end
-      end
+      if (cycle_d_state) cycle <= (cycle - 50 >= 50) ? cycle - 50 : 50;
+      else if (cycle_u_state) cycle <= (cycle + 50 <= 1000) ? cycle + 50 : 1000;
+
     end
   end
   //闪灯
@@ -114,13 +109,11 @@ module KeyToFreq #(
     end
   endgenerate
   LED_CS LED_CS_inst (
-
       .rst_n(rst_n),
       .cs_pointer(cs_pointer),
       .cs(cs)
   );
   LED_Decoder LED_Decoder_inst (
-
       .rst_n(rst_n),
       .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)
