@@ -11,17 +11,17 @@ module KeyToFreq #(
     output logic [7:0] o_dig_sel
 );
   //1000Hz时钟，默认1Hz(cycle=1000)
-  logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
-  logic [2:0] cs_pointer;  //0~7
+  bit [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
+  bit [2:0] cs_pointer = 'b0;  //0~7
   bit [5:0] key_state;
 
-  logic clk_alt;
+  bit clk_alt,clk_100Hz;
   bit led_blink = 0;
-  logic [$clog2(1000)-1:0] cnt, cycle;
+  bit unsigned [$clog2(1000)-1:0] cnt = 'b0, cycle = 'd1000;
 
   logic [$clog2(100000)-1:0] f_clk_alt;
-  logic [4:0] dignits[7:0];
-  assign f_clk_alt  = 100000 / cycle;  //100000 = 1000 * 100
+  bit [4:0] dignits[7:0];
+
   assign dignits[0] = f_clk_alt / 1000;  //数字最高位在显示的左侧
   assign dignits[1] = ((f_clk_alt % 1000) / 100) | 5'b1_0000;  //加上小数点//
   assign dignits[2] = (f_clk_alt % 100) / 10;
@@ -61,12 +61,12 @@ module KeyToFreq #(
   end
 
   //频率变化
-  always @(posedge cycle_u_state or posedge cycle_d_state or negedge rst_n) begin
+  always @(posedge clk_100Hz or negedge rst_n) begin
     if (!rst_n) cycle <= 1000;
     else begin
-      if (cycle_d_state) cycle <= (cycle - 50 >= 50) ? cycle - 50 : 50;
-      else if (cycle_u_state) cycle <= (cycle + 50 <= 1000) ? cycle + 50 : 1000;
-
+      if (cycle_d_state) cycle <= ((cycle - 'd50) >= 'd50) ? (cycle - 'd50) : 50;
+      else if (cycle_u_state) cycle <= (cycle + 'd50 <= 1000) ? cycle + 'd50 : 1000;
+      f_clk_alt <= 100000 / cycle;
     end
   end
   //闪灯
@@ -86,6 +86,8 @@ module KeyToFreq #(
   always @(*) begin
     led[0] = led_blink;
     led[1] = ~led_blink;
+    led[2] = rst_n;
+    led[3] = ~rst_n;
   end
 
   Divider #(
@@ -95,6 +97,14 @@ module KeyToFreq #(
       .clk(clk),
       .rst_n(rst_n),
       .clk_div(clk_alt)
+  );
+  Divider #(
+      .DIV_NUM(10),
+      .DUTY(5)
+  ) CLK1kHzto100Hz (
+      .clk(clk),
+      .rst_n(rst_n),
+      .clk_div(clk_100Hz)
   );
   generate
     genvar i;
