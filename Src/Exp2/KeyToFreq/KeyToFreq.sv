@@ -15,7 +15,7 @@ module KeyToFreq #(
   bit [2:0] cs_pointer = 'b0;  //0~7
   bit [5:0] key_state;
 
-  bit clk_alt, clk_100Hz;
+  bit clk_alt;
   bit led_blink = 0;
   bit unsigned [$clog2(1000)-1:0] cnt = 'b0, cycle = 'd1000;
 
@@ -94,14 +94,7 @@ module KeyToFreq #(
       .rst_n(rst_n),
       .clk_div(clk_alt)
   );
-  Divider #(
-      .DIV_NUM(10),
-      .DUTY(5)
-  ) CLK1kHzto100Hz (
-      .clk(clk),
-      .rst_n(rst_n),
-      .clk_div(clk_100Hz)
-  );
+
   generate
     genvar i;
     for (i = 0; i < 6; i = i + 1) begin : Gen_ButtonDebouncer
