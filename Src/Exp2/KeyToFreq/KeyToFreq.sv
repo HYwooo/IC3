@@ -13,19 +13,24 @@ module KeyToFreq #(
   //1000Hz时钟，默认1Hz(cycle=1000)
   logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
-  logic [5:0] key_state;
+  bit [5:0] key_state;
 
   logic clk_alt;
   bit led_blink = 0;
   logic [$clog2(1000)-1:0] cnt, cycle;
 
   logic [$clog2(100000)-1:0] f_clk_alt;
-  logic [4:0] dignits[3:0];
+  logic [4:0] dignits[7:0];
   assign f_clk_alt  = 100000 / cycle;  //100000 = 1000 * 100
   assign dignits[0] = f_clk_alt / 1000;  //数字最高位在显示的左侧
   assign dignits[1] = ((f_clk_alt % 1000) / 100) | 5'b1_0000;  //加上小数点//
   assign dignits[2] = (f_clk_alt % 100) / 10;
   assign dignits[3] = f_clk_alt % 10;
+  assign dignits[4] = cycle / 1000;
+  assign dignits[5] = ((cycle % 1000) / 100);
+  assign dignits[6] = (cycle % 100) / 10;
+  assign dignits[7] = cycle % 10;
+
 
   bit cycle_u_state, cycle_d_state;  //频率增减状态
   always @(posedge clk_alt or negedge key_state[0]) begin
@@ -41,22 +46,16 @@ module KeyToFreq #(
     if (!rst_n) begin
       dig_ctrl = 'b0;
     end else begin
-      case (cs_pointer)
-        3'b000:  dig_ctrl = dignits[0];
-        3'b001:  dig_ctrl = dignits[1];
-        3'b010:  dig_ctrl = dignits[2];
-        3'b011:  dig_ctrl = dignits[3];
-        default: dig_ctrl = 'b0;
-      endcase
+      dig_ctrl = dignits[cs_pointer];
     end
   end
 
-  //1kHz扫描片选（4位） 000~011
+  //1kHz扫描片选
   always @(posedge clk_alt or negedge rst_n) begin
     if (!rst_n) begin
       cs_pointer <= 0;
     end else begin
-      if (cs_pointer == 3'b011) cs_pointer <= 0;
+      if (&cs_pointer) cs_pointer <= 0;
       else cs_pointer <= cs_pointer + 1;
     end
   end
