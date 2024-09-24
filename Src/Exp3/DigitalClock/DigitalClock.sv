@@ -19,8 +19,12 @@ module DigitalClock #(
   bit [$clog2(60)-1:0] ss;
   bit [$clog2(60)-1:0] mm;
   bit [$clog2(24)-1:0] hh;
-  bit [$clog2(99)-1:0] digits[7:0];
-  logic [7:0] o_dig_sel_wo_dot;
+  blt alt = 0;
+  bit [$clog2(3600)-1:0] alths;
+  bit [$clog2(60)-1:0] altms;
+  bit altss;
+  bit [$clog2(10)-1:0] digits[7:0];
+  logic [7:0] o_dig_sel_wo_dot;  //这个输出的小数点是0
   assign digits[0] = hh / 10;
   assign digits[1] = hh % 10;
   assign digits[2] = 0;
@@ -31,25 +35,74 @@ module DigitalClock #(
   assign digits[7] = ss % 10;
 
   //////*************/没写完
-  bit [5:0] laststate = 'b1;
+  bit [5:0] laststate = '1;
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      laststate <= 'b1;
+      laststate <= '1;
     end else begin
-      if ((laststate[0] & !key_state[0]) && 1);
-      if ((laststate[1] & !key_state[1]) && 1);
-      if ((laststate[2] & !key_state[2]) && 1);
-      if ((laststate[3] & !key_state[3]) && 1);
-      if ((laststate[4] & !key_state[4]) && 1);
-      if ((laststate[5] & !key_state[5]) && 1);
+      //按下
+      if ((laststate[0] & !key_state[0])) begin
+        alt   <= 1;
+        altss <= -1;
+      end
+      if ((laststate[1] & !key_state[1])) begin
+        alt   <= 1;
+        altss <= 1;
+      end
+      if ((laststate[2] & !key_state[2])) begin
+        alt   <= 1;
+        altms <= -60;
+      end
+      if ((laststate[3] & !key_state[3])) begin
+        alt   <= 1;
+        altms <= 60;
+      end
+      if ((laststate[4] & !key_state[4])) begin
+        alt   <= 1;
+        alths <= -3600;
+      end
+      if ((laststate[5] & !key_state[5])) begin
+        alt   <= 1;
+        alths <= 3600;
+      end
+      //弹起
+      if ((!laststate[0] & key_state[0])) begin
+        alt   <= 0;
+        altss <= 0;
+      end
+      if ((!laststate[1] & key_state[1])) begin
+        alt   <= 0;
+        altss <= 0;
+      end
+      if ((!laststate[2] & key_state[2])) begin
+        alt   <= 0;
+        altms <= 0;
+      end
+      if ((!laststate[3] & key_state[3])) begin
+        alt   <= 0;
+        altms <= 0;
+      end
+      if ((!laststate[4] & key_state[4])) begin
+        alt   <= 0;
+        alths <= 0;
+      end
+      if ((!laststate[5] & key_state[5])) begin
+        alt   <= 0;
+        alths <= 0;
+      end
+      //
       laststate[0] <= key_state[0];
       laststate[1] <= key_state[1];
       laststate[2] <= key_state[2];
       laststate[3] <= key_state[3];
       laststate[4] <= key_state[4];
       laststate[5] <= key_state[5];
-
+      //
+      ss <= seconds % 60;
+      mm <= (seconds / 60) % 60;
+      hh <= seconds / 3600;
     end
+
   end
 
   //: -> .
@@ -58,22 +111,20 @@ module DigitalClock #(
       dig_ctrl = 'b0;
     end else begin
       dig_ctrl = digits[cs_pointer];
-      if (cs_pointer & 'b010 || cs_pointer & 'b101) o_dig_sel = 'h1_0;  //显示小数点
-      else o_dig_sel = o_dig_sel_wo_dot;
     end
+    if (cs_pointer & 'b010 || cs_pointer & 'b101) o_dig_sel = 'h1_0;  //显示小数点
+    else o_dig_sel = o_dig_sel_wo_dot;
   end
 
   //生成HH:MM:SS
-  always @(posedge clk_1Hz or negedge rst_n) begin
+  always @(posedge alt or posedge clk_1Hz or negedge rst_n) begin
     if (!rst_n) begin
       seconds <= 0;
     end else begin
-      if (&seconds) seconds <= 0;
+      if (seconds >= 86400 - 1) seconds <= 0;
       else begin
-        seconds <= seconds + 1;
-        ss <= seconds % 60;
-        mm <= (seconds / 60) % 60;
-        hh <= (seconds / 3600) % 24;
+        if (alt) seconds <= seconds + alths + altms + altss;
+        else seconds <= seconds + 1;
       end
     end
   end
