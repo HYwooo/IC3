@@ -39,9 +39,11 @@ IC3
 │  │  └─ KeyToFreq
 │  └─ Exp3
 │     ├─ DigitalClock
+│     │  └─ DigitalClock_tb.sv
 │     ├─ FIR_Filter
 │     │  └─ FIR_Filter_tb.sv
 │     └─ TrafficLight
+│        └─ TrafficLight_tb.sv
 └─ Src
    ├─ Exp1
    │  ├─ Divider
