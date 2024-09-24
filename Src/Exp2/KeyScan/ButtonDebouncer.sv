@@ -28,21 +28,13 @@ module ButtonDebouncer #(
       if (state == STATE_IDLE) begin
         if (!key) begin
           cnt <= cnt + 1;
-          if (cnt == 20) begin
-            next_state <= STATE_PRESSED;
-          end
-        end else begin
-          cnt <= 0;
-        end
+          if (cnt == 20) next_state <= STATE_PRESSED;
+        end else cnt <= 0;
       end else begin
         if (key) begin
           cnt <= cnt + 1;
-          if (cnt == 20) begin
-            next_state <= STATE_IDLE;
-          end
-        end else begin
-          cnt <= 0;
-        end
+          if (cnt == 20) next_state <= STATE_IDLE;
+        end else cnt <= 0;
       end
     end
   end

@@ -9,7 +9,7 @@ module LED_CS (
     if (!rst_n) begin
       cs = 8'hFF;  //全选
     end else begin
-      case (cs_pointer)
+      unique case (cs_pointer)
         3'd0: cs = 8'b0000_0001;
         3'd1: cs = 8'b0000_0010;
         3'd2: cs = 8'b0000_0100;

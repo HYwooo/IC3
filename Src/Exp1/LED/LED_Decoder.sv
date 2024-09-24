@@ -6,12 +6,12 @@ module LED_Decoder (
     output reg [7:0] o_dig_sel  // 8 位输出，用于控制 7 段数码管（加小数点）的显示内容
 );
   logic [7:0] digit_code;
+  assign o_dig_sel = ~digit_code;  //共阴极转共阳极
   always @(*) begin
     if (!rst_n) begin
       digit_code = 'h00;  //全灭
     end else begin
-      o_dig_sel = ~digit_code;  //共阴极转共阳极
-      case (dig_ctrl)
+      unique case (dig_ctrl)
         5'h00:   digit_code = 8'h3f;  //"0"
         5'h01:   digit_code = 8'h06;  //"1"
         5'h02:   digit_code = 8'h5b;  //"2"

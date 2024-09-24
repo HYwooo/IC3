@@ -16,7 +16,7 @@ module Divider #(
       if (cnt == (DIV_NUM - 1)) cnt <= 'd0;
       else cnt <= cnt + 1;
       if (cnt < DUTY) clk_div <= 1;
-      else if (cnt > DUTY - 1) clk_div <= 0;
+      else clk_div <= 0;
     end
   end
 

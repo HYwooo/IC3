@@ -10,45 +10,29 @@ module TrafficLight #(
     output logic [7:0] cs,  //片选信号
     output logic [7:0] o_dig_sel
 );
-  bit clk_1kHz, clk_1Hz;
-  bit [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
-  bit [2:0] cs_pointer = 'b0;  //0~7
-  bit [5:0] key_state;  //消抖后按钮
-  bit [$clog2(65)-1:0] cnt;
-  bit [$clog2(65)-1:0] digits[4:0];
+  logic clk_1kHz, clk_1Hz;
+  bit   [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
+  bit   [2:0] cs_pointer = 'b0;  //0~7
+  logic [5:0] key_state;  //消抖后按钮
+  bit [$clog2(65)-1:0] cnt, cnt_d = 0;
+  logic [$clog2(10)-1:0] digits[3:0];  //四个数码管
 
-  //计时
+  //每秒跳一次cnt
   always @(posedge clk_1Hz or negedge rst_n) begin
-    if (!rst_n) cnt <= 0;
+    if (!rst_n) cnt <= 1;
     else if (cnt == 'd65) cnt <= 1;
     else cnt <= cnt + 1;
   end
-  //FSM
-  bit [2:0] state, next_state;
+
+  bit [2:0] state, state_d;
   localparam RED = 3'b100, YELLOW = 3'b010, GREEN = 3'b001;
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) state <= RED;
-    else state <= next_state;
-  end
-  //状态转移
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-      next_state <= RED;
-    end else begin
-      case (state)
-        RED: begin
-          if (cnt == 25) next_state <= YELLOW;
-        end
-        YELLOW: begin
-          if (cnt == 30) next_state <= GREEN;
-          if (cnt == 65) next_state <= RED;
-        end
-        GREEN: begin
-          if (cnt == 60) next_state <= YELLOW;
-        end
-        default: next_state <= RED;
-      endcase
-    end
+  always_comb begin
+    case (1)
+      (cnt > 0 && cnt <= 25):  state = RED;
+      (cnt > 25 && cnt <= 30): state = YELLOW;
+      (cnt > 30 && cnt <= 60): state = GREEN;
+      (cnt > 60 && cnt <= 65): state = YELLOW;
+    endcase
   end
   //LED状态 低电平点亮
   always @(posedge clk_1Hz or negedge rst_n) begin
@@ -63,33 +47,38 @@ module TrafficLight #(
           led[3] <= 1;
         end
         GREEN: led <= 4'b1011;
-        default: led <= 4'b1111;
+        default: led <= 4'b1111;  //全灭
       endcase
   end
   //数显
-  always @(posedge clk or negedge rst_n) begin
+  always @(posedge clk_1Hz or negedge rst_n) begin
+
     if (!rst_n) begin
+      cnt_d <= 0;
       digits[0] <= 0;
       digits[1] <= 0;
     end else begin
-      case (state)
+      //消除cnt_d 由64跳到65的状态
+      //观察波形
+      if (cnt < 65) cnt_d <= cnt;
+      else cnt_d <= 0;
+      unique case (state)
         RED: begin
-          digits[0] <= (25 - cnt) / 10;
-          digits[1] <= (25 - cnt) % 10;
+          digits[0] <= (25 - cnt_d) / 10;
+          digits[1] <= (25 - cnt_d) % 10;
         end
         YELLOW: begin
           if (cnt <= 30) begin
             digits[0] <= 0;
-            digits[1] <= (30 - cnt) % 10;
+            digits[1] <= (30 - cnt_d) % 10;
           end else begin
             digits[0] <= 0;
-            digits[1] <= (65 - cnt) % 10;
+            digits[1] <= (65 - cnt_d) % 10;
           end
         end
         GREEN: begin
-          digits[0] <= (60 - cnt) / 10;
-          digits[1] <= (60 - cnt) % 10;
-
+          digits[0] <= (60 - cnt_d) / 10;
+          digits[1] <= (60 - cnt_d) % 10;
         end
         default: begin
           digits[0] <= 0;
@@ -103,13 +92,12 @@ module TrafficLight #(
     if (!rst_n) begin
       dig_ctrl = 'b0;
     end else begin
-      dig_ctrl  = 5'b0_1111 & digits[cs_pointer];
-      //以下显示计数器的值
-      digits[2] = cnt / 10;
-      digits[3] = cnt % 10;
+      dig_ctrl = 5'b0_1111 & digits[cs_pointer];  //清除小数点
     end
+    //以下显示计数器的值
+    digits[2] = cnt / 10;
+    digits[3] = cnt % 10;
   end
-
   //1kHz扫描片选
   always @(posedge clk_1kHz or negedge rst_n) begin
     if (!rst_n) begin

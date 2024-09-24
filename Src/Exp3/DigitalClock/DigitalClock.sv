@@ -13,7 +13,7 @@ module DigitalClock #(
     output logic [7:0] o_dig_sel
 );
   bit [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
-  bit [2:0] cs_pointer = 'b0000_0000;  //0~7
+  bit [2:0] cs_pointer = 'b000;  //0~7
   bit [5:0] key_state;
   bit [$clog2(86400)-1:0] seconds = 0;
   bit [$clog2(60)-1:0] ss;
@@ -30,7 +30,7 @@ module DigitalClock #(
   assign digits[6] = ss / 10;
   assign digits[7] = ss % 10;
 
-//////*************/没写完
+  //////*************/没写完
   bit [5:0] laststate = 'b1;
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -43,8 +43,12 @@ module DigitalClock #(
       if ((laststate[4] & !key_state[4]) && 1);
       if ((laststate[5] & !key_state[5]) && 1);
       laststate[0] <= key_state[0];
+      laststate[1] <= key_state[1];
+      laststate[2] <= key_state[2];
+      laststate[3] <= key_state[3];
+      laststate[4] <= key_state[4];
       laststate[5] <= key_state[5];
-     
+
     end
   end
 
@@ -54,7 +58,7 @@ module DigitalClock #(
       dig_ctrl = 'b0;
     end else begin
       dig_ctrl = digits[cs_pointer];
-      if (cs_pointer & 'b0010_0100) o_dig_sel = 'h10;
+      if (cs_pointer & 'b010 || cs_pointer & 'b101) o_dig_sel = 'h1_0;  //显示小数点
       else o_dig_sel = o_dig_sel_wo_dot;
     end
   end

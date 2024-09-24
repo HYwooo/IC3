@@ -21,18 +21,18 @@ module KeyScan #(
   always @(negedge dig_ctrl_n[5]) begin
     state <= ~state;
   end
-  
-  //1kHz扫描片选
-  always @(posedge clk_1kHz or negedge rst_n) begin
+
+  //按钮 扫描片选
+  always @(posedge dig_ctrl_n[5] or negedge rst_n) begin
     if (!rst_n) begin
       cs_pointer <= 0;
     end else begin
-      if (state) begin
-        if (&cs_pointer) cs_pointer <= 0;  //pointer按位与 -> 全1则重置为0
-        else cs_pointer <= cs_pointer + 1;
-      end else begin
-        cs_pointer <= 0;
-      end
+      //if (state||1) begin
+      if (&cs_pointer) cs_pointer <= 0;  //pointer按位与 -> 全1则重置为0
+      else cs_pointer <= cs_pointer + 1;
+      // end else begin
+      //   cs_pointer <= 0;
+      // end
     end
   end
 
