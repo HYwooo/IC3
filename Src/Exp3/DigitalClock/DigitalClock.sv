@@ -19,7 +19,7 @@ module DigitalClock #(
   bit [$clog2(60)-1:0] ss;
   bit [$clog2(60)-1:0] mm;
   bit [$clog2(24)-1:0] hh;
-  blt alt = 0;
+  bit alt = 0;
   bit [$clog2(3600)-1:0] alths;
   bit [$clog2(60)-1:0] altms;
   bit altss;
@@ -43,7 +43,7 @@ module DigitalClock #(
       //按下
       if ((laststate[0] & !key_state[0])) begin
         alt   <= 1;
-        altss <= -1;
+        //altss <= -1;
       end
       if ((laststate[1] & !key_state[1])) begin
         alt   <= 1;
@@ -51,7 +51,7 @@ module DigitalClock #(
       end
       if ((laststate[2] & !key_state[2])) begin
         alt   <= 1;
-        altms <= -60;
+        //altms <= -60;
       end
       if ((laststate[3] & !key_state[3])) begin
         alt   <= 1;
@@ -59,7 +59,7 @@ module DigitalClock #(
       end
       if ((laststate[4] & !key_state[4])) begin
         alt   <= 1;
-        alths <= -3600;
+        //alths <= -3600;
       end
       if ((laststate[5] & !key_state[5])) begin
         alt   <= 1;

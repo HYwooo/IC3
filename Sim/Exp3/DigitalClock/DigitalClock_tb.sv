@@ -2,7 +2,7 @@ module DigitalClock_tb;
 
   // Parameters
   parameter F_CLK = 50000000;
-  parameter F_CLK_SLOW = 1000;
+  parameter F_CLK_SLOW = 10000000;
 
   // Signals
   logic clk;
@@ -54,7 +54,7 @@ module DigitalClock_tb;
 
     // Test Case 3: Verify key press functionality
     key[0] = 1;
-    #20 key[0] = 0;
+    #200 key[0] = 0;
     #100;
     assert(uut.key_state[0] == 1) else $fatal("Key press failed: key_state[0] != 1");
 
