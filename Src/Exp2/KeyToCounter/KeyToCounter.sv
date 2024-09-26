@@ -42,7 +42,7 @@ module KeyToCounter #(
     if (!rst_n) begin
       cs_pointer <= 0;
     end else begin
-      if (display_state == 1) begin
+      if (display_state) begin
         if (&cs_pointer) cs_pointer <= 0;  //pointer按位与 -> 全1则重置为0
         else cs_pointer <= cs_pointer + 1;
       end else begin

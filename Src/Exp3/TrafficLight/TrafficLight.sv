@@ -24,19 +24,20 @@ module TrafficLight #(
     else cnt <= cnt + 1;
   end
 
-  bit [2:0] state, state_d;
+  bit [2:0] state;
   localparam RED = 3'b100, YELLOW = 3'b010, GREEN = 3'b001;
   always_comb begin
-    case (1)
-      (cnt > 0 && cnt <= 25):  state = RED;
+    unique case (1)
+      (cnt > 0 && cnt <= 25): state = RED;
       (cnt > 25 && cnt <= 30): state = YELLOW;
       (cnt > 30 && cnt <= 60): state = GREEN;
       (cnt > 60 && cnt <= 65): state = YELLOW;
+      default: state = RED;
     endcase
   end
   //LED状态 低电平点亮
   always @(posedge clk_1Hz or negedge rst_n) begin
-    if (!rst_n) led = 4'b1111;
+    if (!rst_n) led = 4'b0000;
     else
       case (state)
         RED: led <= 4'b1110;
