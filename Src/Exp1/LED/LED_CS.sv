@@ -18,7 +18,7 @@ module LED_CS (
         3'd5: cs = 8'b0010_0000;
         3'd6: cs = 8'b0100_0000;
         3'd7: cs = 8'b1000_0000;
-        default: cs = 8'b1111_1111;
+        // default: cs = 8'b1111_1111;
       endcase
     end
   end

@@ -1,6 +1,20 @@
-create_clock -period 20.000 [get_ports clk]
+set Tclk 20
+set unc_perc 0.02
+create_clock -period $Tclk [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
 set_property PACKAGE_PIN U18 [get_ports clk]
+
+set timing_remove_clock_reconvergence_pessimism true
+set_critical_range [expr $Tclk * 0.1] $current_design 
+set ideal_ports "clk rst_n"
+set_ideal_network clk
+set_ideal_network rst_n
+set_input_delay [expr 0.2*$Tclk] -clock clk [remove_from_collection [all_inputs] $ideal_ports]
+set_output_delay [expr 0.2*$Tclk] [all_outputs]
+set_clock_uncertainty -setup [expr $Tclk * $unc_perc] [get_clocks clk]
+set_clock_uncertainty -hold [expr $Tclk * [expr $unc_perc * 0.5]] [get_clocks clk]
+set_input_transition 2.0 [remove_from_collection [all_inputs] $ideal_ports]
+set_load 5 [all_outputs]
 
 set_property IOSTANDARD LVCMOS33 [get_ports rst_n]
 set_property IOSTANDARD LVCMOS33 [get_ports {cs[7]}]
@@ -65,3 +79,5 @@ set_property PACKAGE_PIN J16 [get_ports {led[3]}]
 
 
 
+
+set_operating_conditions -grade extended
