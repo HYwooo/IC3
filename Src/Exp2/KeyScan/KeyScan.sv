@@ -14,41 +14,39 @@ module KeyScan #(
 );
   logic [5:0] dig_ctrl_n, dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //片选指针 0~7
-  logic clk_1kHz;
-  //bit state = 0;  //切换显示状态 1:全显示 0:单个显示
+  logic clk_1kHz, clk_50Hz;
   assign dig_ctrl = ~dig_ctrl_n;
-
-  // always @(negedge dig_ctrl_n[5]) begin
-  //   state <= ~state;
-  // end
-
   //按钮 扫描片选
   always @(negedge dig_ctrl_n[5] or negedge rst_n) begin
     if (!rst_n) begin
       cs_pointer <= 0;
     end else begin
-      //if (state||1) begin
       if (&cs_pointer) cs_pointer <= 0;  //pointer按位与 -> 全1则重置为0
       else if (!(|cs_pointer)) cs_pointer <= 3'b111;
       else cs_pointer <= cs_pointer + 1;
-      // end else begin
-      //   cs_pointer <= 0;
-      // end
     end
   end
-
+  //
   generate
     genvar i;
-    for (i = 0; i < 6; i = i + 1) begin : Gen_ButtonDebouncer
-      ButtonDebouncer ButtonDebouncer_inst (
-          .clk(clk),
+    for (i = 0; i < 6; i = i + 1) begin : Gen_SimpleDebouncer
+      SimpleDebouncer Debouncer_inst (
+          .clk_50Hz(clk_50Hz),
           .rst_n(rst_n),
           .key(key[i]),
           .key_state(dig_ctrl_n[i])
       );
     end
   endgenerate
-
+  //
+  Divider #(
+      .DIV_NUM(F_CLK / F_CLK_SLOW),
+      .DUTY(F_CLK / F_CLK_SLOW / 2)
+  ) CLK50Mto50Hz (
+      .clk(clk),
+      .rst_n(rst_n),
+      .clk_div(clk_50Hz)
+  );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)

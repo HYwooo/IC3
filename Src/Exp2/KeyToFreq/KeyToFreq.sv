@@ -15,13 +15,14 @@ module KeyToFreq #(
   bit [2:0] cs_pointer = 'b0;  //0~7
   bit [5:0] key_state;
 
-  bit clk_alt;
+  bit clk_alt, clk_50Hz;
   bit led_blink = 0;
   bit unsigned [$clog2(1000)-1:0] cnt = 'b0, cycle = 'd1000;
 
   logic [$clog2(100000)-1:0] f_clk_alt;
   bit [4:0] digits[7:0];
 
+  //fix:应使用bin2bcd转换数字
   assign digits[0] = f_clk_alt / 1000;  //数字最高位在显示的左侧
   assign digits[1] = ((f_clk_alt % 1000) / 100) | 5'b1_0000;  //加上小数点//
   assign digits[2] = (f_clk_alt % 100) / 10;
@@ -35,11 +36,8 @@ module KeyToFreq #(
 
   //组合逻辑实现pointer到译码器的映射
   always @(*) begin
-    if (!rst_n) begin
-      dig_ctrl = 'b0;
-    end else begin
-      dig_ctrl = digits[cs_pointer];
-    end
+    if (!rst_n) dig_ctrl = 'b0;
+    else dig_ctrl = digits[cs_pointer];
   end
 
   //1kHz扫描片选
@@ -85,7 +83,14 @@ module KeyToFreq #(
     led[2] = rst_n;
     led[3] = ~rst_n;
   end
-
+  Divider #(
+      .DIV_NUM(F_CLK / F_CLK_SLOW),
+      .DUTY(F_CLK / F_CLK_SLOW / 2)
+  ) CLK50Mto50Hz (
+      .clk(clk),
+      .rst_n(rst_n),
+      .clk_div(clk_50Hz)
+  );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
@@ -97,9 +102,9 @@ module KeyToFreq #(
 
   generate
     genvar i;
-    for (i = 0; i < 6; i = i + 1) begin : Gen_ButtonDebouncer
-      ButtonDebouncer ButtonDebouncer_inst (
-          .clk(clk),
+    for (i = 0; i < 6; i = i + 1) begin : Gen_SimpleDebouncer
+      SimpleDebouncer SimpleDebouncer_inst (
+          .clk_50Hz(clk_50Hz),
           .rst_n(rst_n),
           .key(key[i]),
           .key_state(key_state[i])

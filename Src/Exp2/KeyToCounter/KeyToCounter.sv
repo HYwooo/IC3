@@ -19,7 +19,7 @@ module KeyToCounter #(
   bit   [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
   logic [5:0] key_state;
-  bit clk_1kHz, display_state = 0;
+  bit clk_1kHz, clk_50Hz, display_state = 0;
   bit [1:0] laststate = 'b1;
 
   always @(posedge clk or negedge rst_n) begin
@@ -50,19 +50,27 @@ module KeyToCounter #(
       end
     end
   end
-
+  //
   generate
     genvar i;
-    for (i = 0; i < 6; i = i + 1) begin : Gen_ButtonDebouncer
-      ButtonDebouncer ButtonDebouncer_inst (
-          .clk(clk),
+    for (i = 0; i < 6; i = i + 1) begin : Gen_SimpleDebouncer
+      SimpleDebouncer SimpleDebouncer_inst (
+          .clk_50Hz(clk_50Hz),
           .rst_n(rst_n),
           .key(key[i]),
           .key_state(key_state[i])
       );
     end
   endgenerate
-
+  //
+  Divider #(
+      .DIV_NUM(F_CLK / F_CLK_SLOW),
+      .DUTY(F_CLK / F_CLK_SLOW / 2)
+  ) CLK50Mto50Hz (
+      .clk(clk),
+      .rst_n(rst_n),
+      .clk_div(clk_50Hz)
+  );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
