@@ -6,9 +6,7 @@ module TrafficLight #(
     input i_clk,
     input i_rst_n,
     input logic [8:0] i_key,
-    //input logic [3:0] i_key_col,
 
-    //output logic [3:0] o_key_row,
     output logic [3:0] o_led,  //[0]red [1]yellow [2]green
     output logic [7:0] o_cs,  //片选信号
     output logic [7:0] o_dig_sel
@@ -16,7 +14,7 @@ module TrafficLight #(
   logic clk_1kHz, clk_1Hz;
   logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
-  logic [$clog2(65)-1:0] cnt;
+  logic [$clog2(60)-1:0] cnt;
   logic [$clog2(10)-1:0] digits[1:0];  //2个数码管 其中两个是debug时显示cnt用的
   bit [3:0] led_state = '1;
   logic [1:0] state;
@@ -30,61 +28,41 @@ module TrafficLight #(
     else if (cnt == 'd60) cnt <= 1;
     else cnt <= cnt + 1;
   end
-  always @(posedge clk_1Hz) begin
-    if (cnt < 25) state <= RED;
-    else if (cnt < 55) state <= GREEN;
-    else if (cnt < 60) state <= YELLOW;
-    else state <= RED;
+  always @(posedge clk_1Hz or negedge i_rst_n) begin
+    if (!i_rst_n) state <= 0;
+    else if (cnt == 1 || cnt == 60) state <= RED;
+    else if (cnt == 25) state <= GREEN;
+    else if (cnt == 55) state <= YELLOW;
   end
   //LED状态 低电平点亮
-  always @(posedge i_clk) begin
-    if (!i_rst_n) o_led <= 4'b0000;
-    else
-      case (state)
-        RED: o_led <= 4'b1110;
-        GREEN: o_led <= 4'b1011;
-        YELLOW: o_led <= {2'b11, clk_1Hz, 1'b1};
-        default: o_led <= 4'b1110;
-      endcase
+  always @(posedge clk_1kHz) begin
+    case (state)
+      RED: o_led <= 4'b1110;
+      GREEN: o_led <= 4'b1011;
+      YELLOW: o_led <= {2'b11, clk_1Hz, 1'b1};
+      default: o_led <= 4'b0000;
+    endcase
   end
   //数显
   always_comb begin
-    if (!i_rst_n) begin
-      bin = '0;
-    end else begin
-      unique case (state)
-        RED: begin
-          bin = (26 - cnt);
-        end
-        YELLOW: begin
-          bin = (61 - cnt);
-        end
-        GREEN: begin
-          bin = (56 - cnt);
-        end
-        default: begin
-          bin = 0;
-        end
-      endcase
-    end
+    unique case (state)
+      RED: bin = 26 - cnt;
+      YELLOW: bin = 61 - cnt;
+      GREEN: bin = 56 - cnt;
+      default: bin = 0;
+    endcase
   end
   //数显
   assign digits[0] = bcd[7:4];
   assign digits[1] = bcd[3:0];
 
-  always @(posedge clk_1Hz or negedge i_rst_n) begin
-    if (!i_rst_n) begin
-      dig_ctrl <= 'b0;
-    end else begin
-      dig_ctrl <= digits[cs_pointer];  //清除小数点
-    end
+  always @(posedge clk_1Hz) begin
+    dig_ctrl <= digits[cs_pointer];
   end
   //1kHz扫描片选
   always @(posedge clk_1kHz) begin
-
-    if (cs_pointer) cs_pointer <= 0;  //只用4个数码管
+    if (|cs_pointer) cs_pointer <= 0;  //只用2个数码管
     else cs_pointer <= cs_pointer + 1;
-
   end
   bin2bcd bin2bcd_inst (
       .i_bin(bin),

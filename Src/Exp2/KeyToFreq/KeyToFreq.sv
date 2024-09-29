@@ -39,18 +39,13 @@ module KeyToFreq #(
 
   //组合逻辑实现pointer到译码器的映射
   always @(*) begin
-    if (!i_rst_n) dig_ctrl = 'b0;
-    else dig_ctrl = digits[cs_pointer];
+    dig_ctrl = digits[cs_pointer];
   end
 
   //1kHz扫描片选
   always @(posedge clk_1kHz or negedge i_rst_n) begin
-    if (!i_rst_n) begin
-      cs_pointer <= 0;
-    end else begin
-      if (&cs_pointer) cs_pointer <= 0;
-      else cs_pointer <= cs_pointer + 1;
-    end
+    if (&cs_pointer) cs_pointer <= 0;
+    else cs_pointer <= cs_pointer + 1;
   end
   //频率变化
   bit [5:0] laststate = 'b1;
@@ -59,8 +54,8 @@ module KeyToFreq #(
       laststate <= 'b11;
       cycle <= 'd1000;
     end else begin
-      if ((laststate[0] & !key_state[0]) && cycle <= 'd950) cycle <= cycle + 'd50;
-      if ((laststate[5] & !key_state[5]) && cycle >= 'd100) cycle <= cycle - 'd50;
+      if ((laststate[0] & !key_state[0]) && cycle != 'd950) cycle <= cycle + 'd50;
+      if ((laststate[5] & !key_state[5]) && cycle != 'd100) cycle <= cycle - 'd50;
       laststate[0] <= key_state[0];
       laststate[5] <= key_state[5];
       f_clk_alt <= 100000 / cycle;
@@ -68,24 +63,16 @@ module KeyToFreq #(
   end
   //闪灯
   always @(posedge clk_1kHz or negedge i_rst_n) begin
-    if (!i_rst_n) begin
-      led_blink <= 0;
-      cnt <= 0;
-    end else begin
+    if (!i_rst_n) cnt <= 0;
+    else begin
       if (cnt == cycle - 1) begin
         cnt <= 0;
         led_blink <= ~led_blink;
-      end else begin
-        cnt <= cnt + 1;
-      end
+        o_led[0] <= ~o_led[0];
+      end else cnt <= cnt + 1;
     end
   end
-  always @(*) begin
-    o_led[0] = led_blink;
-    o_led[1] = ~led_blink;
-    o_led[2] = i_rst_n;
-    o_led[3] = ~i_rst_n;
-  end
+
   bin2bcd bin2bcd_inst (
       .i_bin(bin),
       .o_bcd(bcd)

@@ -13,7 +13,6 @@ module FIR_Filter #(
   logic clk_1kHz, clk_50Hz, clk_1Hz;
   bit [2:0] Xin = '0;  // 滤波器的输入数据，输入速率
   logic [11:0] Yout;  // 滤波器的输出数据
-
   logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
   logic [4:0] digits[3:0];  //5bit 2个数码管 其中两个是debug时显示cnt用的
@@ -23,19 +22,18 @@ module FIR_Filter #(
   logic [15:0] bcd;
   ///
   assign bin = {{2{1'b0}}, Yout};
+  //T'触发器
   always @(negedge key_state[5]) begin
-    Xin[2] <= ~Xin[2];
+    Xin[2]   <= ~Xin[2];
+    o_led[1] <= ~Xin[2];
   end
   always @(negedge key_state[4]) begin
-    Xin[1] <= ~Xin[1];
+    Xin[1]   <= ~Xin[1];
+    o_led[2] <= ~Xin[1];
   end
   always @(negedge key_state[3]) begin
-    Xin[0] <= ~Xin[0];
-  end
-  always @(Xin) begin : led
+    Xin[0]   <= ~Xin[0];
     o_led[3] <= ~Xin[0];
-    o_led[2] <= ~Xin[1];
-    o_led[1] <= ~Xin[2];
   end
   always @(posedge clk_50Hz) begin
     digits[0] <= bcd[15:12];

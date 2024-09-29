@@ -1,5 +1,3 @@
-set Tclk 20
-set unc_perc 0.02
 
 set_property IOSTANDARD LVCMOS33 [get_ports i_rst_n]
 set_property PACKAGE_PIN N15 [get_ports i_rst_n]
@@ -85,10 +83,12 @@ set_property PACKAGE_PIN Y17 [get_ports {i_key_col[2]}]
 set_property PACKAGE_PIN V15 [get_ports {i_key_col[1]}]
 set_property PACKAGE_PIN W15 [get_ports {i_key_col[0]}]
 
-create_clock -period $Tclk [get_ports i_clk]
-set timing_remove_clock_reconvergence_pessimism true
-set_operating_conditions -grade industrial
+create_clock -period 20.000 [get_ports i_clk]
 
 
 
 
+
+create_generated_clock -name {Gen_Debouncer[3].Debouncer_inst/o_key_state_reg_n_1} -source [get_ports i_clk] -divide_by 1000000 [get_pins {Gen_Debouncer[3].Debouncer_inst/o_key_state_reg/Q}]
+create_generated_clock -name {Gen_Debouncer[4].Debouncer_inst/o_key_state_reg_n_1} -source [get_ports i_clk] -divide_by 1000000 [get_pins {Gen_Debouncer[4].Debouncer_inst/o_key_state_reg/Q}]
+create_generated_clock -name {Gen_Debouncer[5].Debouncer_inst/o_key_state_reg_n_1} -source [get_ports i_clk] -divide_by 1000000 [get_pins {Gen_Debouncer[5].Debouncer_inst/o_key_state_reg/Q}]

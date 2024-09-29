@@ -29,8 +29,7 @@ module FIR_Filter_Core (
       end
       //Xin=3'b100Ê±£¬Êä³öÎª {2.0[0],3.2[4],5.7[6]}
       Preout<=( ({{3{1'b0}}, Xin0, {6{1'b0}}} + {{8{1'b0}}, Xin0, {1{1'b0}}} - {{5{1'b0}}, Xin0, {4{1'b0}}}) + ({{4{1'b0}}, Xin1, {5{1'b0}}} - Xin1) +  ({{3{1'b0}}, Xin2, {6{1'b0}}} - Xin2) );
-      if (Preout[3:0] > 4) begin
-        Yout <= Preout + 'd10;
-      end else Yout <= Preout;
+      if ((|Preout[2:0]) & Preout[3]) Yout <= Preout + 'd10;
+      else Yout <= Preout;
     end
 endmodule
