@@ -87,11 +87,6 @@ set_property PACKAGE_PIN W15 [get_ports {i_key_col[0]}]
 
 create_clock -period $Tclk [get_ports i_clk]
 set timing_remove_clock_reconvergence_pessimism true
-set_input_delay [expr 0.2*$Tclk] [all_inputs]
-set_output_delay [expr 0.2*$Tclk] [all_outputs]
-set_clock_uncertainty -setup [expr $Tclk * $unc_perc] [get_clocks i_clk]
-set_clock_uncertainty -hold [expr $Tclk * [expr $unc_perc * 0.5]] [get_clocks i_clk]
-set_load 5 [all_outputs]
 set_operating_conditions -grade industrial
 
 

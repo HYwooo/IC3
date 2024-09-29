@@ -26,7 +26,7 @@ module FIR_Filter_Core (
         Xin1 = Xin0;
         Xin0 = 'd0;
       end
-
+      //Xin=3'b100Ê±£¬Êä³öÎª {2.0[0],3.2[4],5.7[6]}
       Yout <= ( ({{3{1'b0}}, Xin0, {6{1'b0}}} + {{8{1'b0}}, Xin0, {1{1'b0}}} - {{5{1'b0}}, Xin0, {4{1'b0}}}) + ({{4{1'b0}}, Xin1, {5{1'b0}}} - Xin1) +  ({{3{1'b0}}, Xin2, {6{1'b0}}} - Xin2) );
     end
 endmodule
