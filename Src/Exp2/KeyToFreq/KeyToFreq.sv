@@ -3,11 +3,11 @@ module KeyToFreq #(
     parameter F_CLK = 50000000,
     parameter F_CLK_SLOW = 1000
 ) (
-    input clk,
-    input rst_n,
-    input logic [5:0] key,
+    input i_clk,
+    input i_rst_n,
+    input logic [8:0] i_key,
     output logic [3:0] led,
-    output logic [7:0] cs,  //片选信号
+    output logic [7:0] o_cs,  //片选信号
     output logic [7:0] o_dig_sel
 );
   //1000Hz时钟，默认1Hz(cycle=1000)
@@ -36,13 +36,13 @@ module KeyToFreq #(
 
   //组合逻辑实现pointer到译码器的映射
   always @(*) begin
-    if (!rst_n) dig_ctrl = 'b0;
+    if (!i_rst_n) dig_ctrl = 'b0;
     else dig_ctrl = digits[cs_pointer];
   end
 
   //1kHz扫描片选
-  always @(posedge clk_alt or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_alt or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       cs_pointer <= 0;
     end else begin
       if (&cs_pointer) cs_pointer <= 0;
@@ -51,8 +51,8 @@ module KeyToFreq #(
   end
   //频率变化
   bit [5:0] laststate = 'b1;
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge i_clk or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       laststate <= 'b11;
       cycle <= 'd1000;
     end else begin
@@ -64,8 +64,8 @@ module KeyToFreq #(
     end
   end
   //闪灯
-  always @(posedge clk_alt or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_alt or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       led_blink <= 0;
       cnt <= 0;
     end else begin
@@ -80,23 +80,23 @@ module KeyToFreq #(
   always @(*) begin
     led[0] = led_blink;
     led[1] = ~led_blink;
-    led[2] = rst_n;
-    led[3] = ~rst_n;
+    led[2] = i_rst_n;
+    led[3] = ~i_rst_n;
   end
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
   ) CLK50Mto50Hz (
-      .clk(clk),
-      .rst_n(rst_n),
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_50Hz)
   );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
   ) CLK50MtoAlt (
-      .clk(clk),
-      .rst_n(rst_n),
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_alt)
   );
 
@@ -105,19 +105,19 @@ module KeyToFreq #(
     for (i = 0; i < 6; i = i + 1) begin : Gen_SimpleDebouncer
       SimpleDebouncer SimpleDebouncer_inst (
           .clk_50Hz(clk_50Hz),
-          .rst_n(rst_n),
-          .key(key[i]),
+          .i_rst_n(i_rst_n),
+          .i_key(i_key[i]),
           .key_state(key_state[i])
       );
     end
   endgenerate
   LED_CS LED_CS_inst (
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .cs_pointer(cs_pointer),
-      .cs(cs)
+      .o_cs(o_cs)
   );
   LED_Decoder LED_Decoder_inst (
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)
   );

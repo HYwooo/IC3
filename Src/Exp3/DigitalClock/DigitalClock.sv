@@ -5,11 +5,11 @@ module DigitalClock #(
     parameter F_CLK = 50000000,
     parameter F_CLK_SLOW = 1000
 ) (
-    input clk,
-    input rst_n,
-    input logic [5:0] key,  //HH:MM:SS
+    input i_clk,
+    input i_rst_n,
+    input logic [8:0] i_key,  //HH:MM:SS
     output logic [3:0] led,
-    output logic [7:0] cs,  //片选信号
+    output logic [7:0] o_cs,  //片选信号
     output logic [7:0] o_dig_sel
 );
   bit [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
@@ -36,8 +36,8 @@ module DigitalClock #(
 
   //////*************/没写完
   bit [5:0] laststate = '1;
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge i_clk or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       laststate <= '1;
     end else begin
       //按下
@@ -107,7 +107,7 @@ module DigitalClock #(
 
   //: -> .
   always @(*) begin
-    if (!rst_n) begin
+    if (!i_rst_n) begin
       dig_ctrl = 'b0;
     end else begin
       dig_ctrl = digits[cs_pointer];
@@ -117,8 +117,8 @@ module DigitalClock #(
   end
 
   //生成HH:MM:SS
-  always @(posedge alt or posedge clk_1Hz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge alt or posedge clk_1Hz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       seconds <= 0;
     end else begin
       if (seconds >= 86400 - 1) seconds <= 0;
@@ -130,8 +130,8 @@ module DigitalClock #(
   end
 
   //1kHz扫描片选
-  always @(posedge clk_1kHz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       cs_pointer <= 0;
     end else begin
       if (&cs_pointer) cs_pointer <= 0;
@@ -142,36 +142,36 @@ module DigitalClock #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
   ) CLK50Mto1kHz (
-      .clk(clk),
-      .rst_n(rst_n),
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1kHz)
   );
   Divider #(
       .DIV_NUM(1000),
       .DUTY(500)
   ) CLK1kHzto1Hz (
-      .clk(clk_1kHz),
-      .rst_n(rst_n),
+      .i_clk(clk_1kHz),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1Hz)
   );
   generate
     genvar i;
     for (i = 0; i < 6; i = i + 1) begin : Gen_ButtonDebouncer
       ButtonDebouncer ButtonDebouncer_inst (
-          .clk(clk),
-          .rst_n(rst_n),
-          .key(key[i]),
+          .i_clk(i_clk),
+          .i_rst_n(i_rst_n),
+          .i_key(i_key[i]),
           .key_state(key_state[i])
       );
     end
   endgenerate
   LED_CS LED_CS_inst (
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .cs_pointer(cs_pointer),
-      .cs(cs)
+      .o_cs(o_cs)
   );
   LED_Decoder LED_Decoder_inst (
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel_wo_dot)
   );

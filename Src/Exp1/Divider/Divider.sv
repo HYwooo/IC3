@@ -3,20 +3,20 @@ module Divider #(
     parameter DIV_NUM = 16,
     parameter DUTY = 4
 ) (
-    input clk,
-    input rst_n,
-    output logic clk_div
+    input i_clk,
+    input i_rst_n,
+    output logic o_clk_div
 );
   logic [$clog2(DIV_NUM)-1:0] cnt;
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge i_clk or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       cnt <= 'd0;
-      clk_div <= 0;
+      o_clk_div <= 0;
     end else begin
       if (cnt == (DIV_NUM - 1)) cnt <= 'd0;
       else cnt <= cnt + 1;
-      if (cnt < DUTY) clk_div <= 1;
-      else clk_div <= 0;
+      if (cnt < DUTY) o_clk_div <= 1;
+      else o_clk_div <= 0;
     end
   end
 

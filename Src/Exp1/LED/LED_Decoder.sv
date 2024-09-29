@@ -1,14 +1,14 @@
 //LED_Decoder.sv
 //用于将5位二进制输入转换为8位输出，用于控制7段数码管（及小数点）的显示内容
 module LED_Decoder (
-    input rst_n,
+    input i_rst_n,
     input [4:0] dig_ctrl,  // 5 位输入，用于选择 7 段数码管的显示内容，最高位为小数点控制位
     output reg [7:0] o_dig_sel  // 8 位输出，用于控制 7 段数码管（加小数点）的显示内容
 );
   logic [7:0] digit_code;
   assign o_dig_sel = ~digit_code;  //共阴极转共阳极
   always @(*) begin
-    if (!rst_n) begin
+    if (!i_rst_n) begin
       digit_code = 'h00;  //全灭
     end else begin
       unique case (dig_ctrl)
@@ -44,7 +44,7 @@ module LED_Decoder (
         5'h1d:   digit_code = 8'h5e | 8'h80;  //"D."
         5'h1e:   digit_code = 8'h79 | 8'h80;  //"E."
         5'h1f:   digit_code = 8'h71 | 8'h80;  //"F."
-        default: digit_code = 8'hFF;  //default:全亮
+        //default: digit_code = 8'hFF;  //default:全亮
       endcase
     end
   end

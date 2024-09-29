@@ -3,11 +3,11 @@ module TrafficLight #(
     parameter F_CLK = 50000000,
     parameter F_CLK_SLOW = 1000
 ) (
-    input clk,
-    input rst_n,
-    input logic [5:0] key,
-    output logic [3:0] led,  //[0]red [1]yellow [2]green
-    output logic [7:0] cs,  //片选信号
+    input i_clk,
+    input i_rst_n,
+    input logic [8:0] i_key,
+    output logic [3:0] o_led,  //[0]red [1]yellow [2]green
+    output logic [7:0] o_cs,  //片选信号
     output logic [7:0] o_dig_sel
 );
   logic clk_1kHz, clk_1Hz;
@@ -19,8 +19,8 @@ module TrafficLight #(
   logic [1:0] state;
   localparam RED = 2'b01, YELLOW = 2'b10, GREEN = 2'b11;
   //每秒跳一次cnt
-  always @(posedge clk_1Hz or negedge rst_n) begin
-    if (!rst_n) cnt <= 0;
+  always @(posedge clk_1Hz or negedge i_rst_n) begin
+    if (!i_rst_n) cnt <= 0;
     else if (cnt == 'd60) cnt <= 1;
     else cnt <= cnt + 1;
   end
@@ -31,19 +31,19 @@ module TrafficLight #(
     else state <= RED;
   end
   //LED状态 低电平点亮
-  always @(posedge clk) begin
-    if (!rst_n) led <= 4'b0000;
+  always @(posedge i_clk) begin
+    if (!i_rst_n) o_led <= 4'b0000;
     else
       case (state)
-        RED: led <= 4'b1110;
-        GREEN: led <= 4'b1011;
-        YELLOW: led <= {2'b11,clk_1Hz,1'b1} ;
-        default: led <= 4'b1110;
+        RED: o_led <= 4'b1110;
+        GREEN: o_led <= 4'b1011;
+        YELLOW: o_led <= {2'b11,clk_1Hz,1'b1} ;
+        default: o_led <= 4'b1110;
       endcase
   end
   //数显
-  always @(*) begin
-    if (!rst_n) begin
+  always_comb begin
+    if (!i_rst_n) begin
       digits[0] = 0;
       digits[1] = 0;
     end else begin
@@ -68,16 +68,16 @@ module TrafficLight #(
     end
   end
   //数显
-  always @(posedge clk_1Hz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_1Hz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       dig_ctrl <= 'b0;
     end else begin
       dig_ctrl <= digits[cs_pointer];  //清除小数点
     end
   end
   //1kHz扫描片选
-  always @(posedge clk_1kHz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       cs_pointer <= 0;
     end else begin
       if (cs_pointer) cs_pointer <= 0;  //只用4个数码管
@@ -89,8 +89,8 @@ module TrafficLight #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
   ) CLK50Mto1k (
-      .clk(clk),
-      .rst_n(rst_n),
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1kHz)
   );
   //1kHz分频产生1Hz信号
@@ -98,19 +98,19 @@ module TrafficLight #(
       .DIV_NUM(1000),
       .DUTY(500)
   ) CLK1kto1Hz (
-      .clk(clk_1kHz),
-      .rst_n(rst_n),
+      .i_clk(clk_1kHz),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1Hz)
   );
   //LED片选信号
   LED_CS LED_CS_inst (
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .cs_pointer(cs_pointer),
-      .cs(cs)
+      .o_cs(o_cs)
   );
   //LED译码器
   LED_Decoder LED_Decoder_inst (
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)
   );

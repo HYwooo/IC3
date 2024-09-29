@@ -5,17 +5,17 @@ module LED_Scan #(
     parameter F_CLK  = 50000000,
     parameter F_SCAN = 1000
 ) (
-    input clk,
-    input rst_n,
-    output reg [7:0] cs,  //片选信号
+    input i_clk,
+    input i_rst_n,
+    output reg [7:0] o_cs,  //片选信号
     output reg [7:0] o_dig_sel
 );
   logic clk_1Hz, clk_1kHz;
   logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //计数器0~7
   //1kHz扫描片选
-  always @(posedge clk_1kHz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       cs_pointer <= 0;
     end else begin
       if (&cs_pointer) cs_pointer <= 0;  //pointer按位与 -> 全1则重置为0
@@ -23,8 +23,8 @@ module LED_Scan #(
     end
   end
   //1Hz刷新数字 同步赋值
-  always @(posedge clk_1Hz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_1Hz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       dig_ctrl <= 5'h1_8;
     end else begin
       if (dig_ctrl == 5'h1_F) begin
@@ -39,8 +39,8 @@ module LED_Scan #(
       .DIV_NUM(F_CLK / F_SCAN),
       .DUTY(F_CLK / F_SCAN / 2)
   ) CLK50Mto1k (
-      .clk(clk),
-      .rst_n(rst_n),
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1kHz)
   );
   //1kHz分频产生1Hz信号
@@ -48,21 +48,21 @@ module LED_Scan #(
       .DIV_NUM(1000),
       .DUTY(500)
   ) CLK1kto1Hz (
-      .clk(clk_1kHz),
-      .rst_n(rst_n),
+      .i_clk(clk_1kHz),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1Hz)
   );
   //LED片选信号
   LED_CS LED_CS_inst (
 
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .cs_pointer(cs_pointer),
-      .cs(cs)
+      .o_cs(o_cs)
   );
   //LED译码器
   LED_Decoder LED_Decoder_inst (
 
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)
   );

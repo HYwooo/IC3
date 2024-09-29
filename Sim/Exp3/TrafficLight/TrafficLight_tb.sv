@@ -6,11 +6,11 @@ module TrafficLight_tb;
   parameter F_CLK_SLOW = 10000000;//提高速度
 
   // Signals
-  logic clk;
-  logic rst_n;
-  logic [5:0] key;
+  logic i_clk;
+  logic i_rst_n;
+  logic [8:0] i_key;
   logic [3:0] led;
-  logic [7:0] cs;
+  logic [7:0] o_cs;
   logic [7:0] o_dig_sel;
 
   // Instantiate the TrafficLight module
@@ -18,34 +18,34 @@ module TrafficLight_tb;
     .F_CLK(F_CLK),
     .F_CLK_SLOW(F_CLK_SLOW)
   ) uut (
-    .clk(clk),
-    .rst_n(rst_n),
-    .key(key),
+    .i_clk(i_clk),
+    .i_rst_n(i_rst_n),
+    .i_key(i_key),
     .led(led),
-    .cs(cs),
+    .o_cs(o_cs),
     .o_dig_sel(o_dig_sel)
   );
 
   // Clock generation
   initial begin
-    clk = 0;
-    forever #10 clk = ~clk; // 50 MHz clock
+    i_clk = 0;
+    forever #10 i_clk = ~i_clk; // 50 MHz clock
   end
 
   // Reset generation
   initial begin
-    rst_n = 0;
-    #100 rst_n = 1;
+    i_rst_n = 0;
+    #100 i_rst_n = 1;
   end
 
   // Test scenarios
   initial begin
     // Initialize inputs
-    key = '1;
+    i_key = '1;
 
     // Wait for reset deassertion
-    @(negedge rst_n);
-    @(posedge rst_n);
+    @(negedge i_rst_n);
+    @(posedge i_rst_n);
 
     // Test reset behavior
     #20;

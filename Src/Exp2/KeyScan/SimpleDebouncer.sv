@@ -1,15 +1,15 @@
 //SimpleDebouncer.sv
 module SimpleDebouncer (
-    input clk_50Hz,
-    input rst_n,
-    input key,
-    output logic key_state
+    input i_clk_50Hz,
+    input i_rst_n,
+    input logic i_key,
+    output logic o_key_state
 );
-  always_ff @(posedge clk_50Hz or negedge rst_n) begin
-    if (!rst_n) begin
-      key_state <= 1'b1;
+  always_ff @(posedge i_clk_50Hz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
+      o_key_state <= 1'b1;
     end else begin
-      key_state <= (key ^ key_state) & key;
+      o_key_state <= (i_key ^ o_key_state) & i_key;
     end
   end
 endmodule

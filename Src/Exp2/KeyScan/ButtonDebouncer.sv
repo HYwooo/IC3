@@ -4,9 +4,9 @@ module ButtonDebouncer #(
     parameter F_CLK = 50000000,
     parameter F_CLK_DIV = 1000
 ) (
-    input clk,
-    input rst_n,
-    input key,
+    input i_clk,
+    input i_rst_n,
+    input i_key,
     output logic key_state
 );
   logic clk_1kHz;
@@ -15,23 +15,23 @@ module ButtonDebouncer #(
   logic state, next_state;
   logic [4:0] cnt;
   //FSM
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge i_clk or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       state <= STATE_IDLE;
     end else state <= next_state;
   end
-  always @(posedge clk_1kHz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       cnt <= 0;
       next_state <= STATE_IDLE;
     end else begin
       if (state == STATE_IDLE) begin
-        if (!key) begin
+        if (!i_key) begin
           cnt <= cnt + 1;
           if (cnt == 20) next_state <= STATE_PRESSED;
         end else cnt <= 0;
       end else begin
-        if (key) begin
+        if (i_key) begin
           cnt <= cnt + 1;
           if (cnt == 20) next_state <= STATE_IDLE;
         end else cnt <= 0;
@@ -43,8 +43,8 @@ module ButtonDebouncer #(
       .DIV_NUM(F_CLK / F_CLK_DIV),
       .DUTY(F_CLK / F_CLK_DIV / 2)
   ) CLK50Mto1k (
-      .clk(clk),
-      .rst_n(rst_n),
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1kHz)
   );
 endmodule

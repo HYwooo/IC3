@@ -8,11 +8,11 @@ module KeyToCounter #(
     parameter F_CLK = 50000000,
     parameter F_CLK_SLOW = 1000
 ) (
-    input clk,
-    input rst_n,
-    input logic [5:0] key,
-    output logic [3:0] led,
-    output logic [7:0] cs,  //片选信号
+    input i_clk,
+    input i_rst_n,
+    input logic [8:0] i_key,
+    output logic [3:0] o_led,
+    output logic [7:0] o_cs,  //片选信号
     output logic [7:0] o_dig_sel
 );
 
@@ -22,8 +22,8 @@ module KeyToCounter #(
   bit clk_1kHz, clk_50Hz, display_state = 0;
   bit [1:0] laststate = 'b1;
 
-  always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge i_clk or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       laststate <= 'b11;
       dig_ctrl  <= 'b0;
     end else begin
@@ -38,8 +38,8 @@ module KeyToCounter #(
   end
 
   //1kHz扫描片选信号
-  always @(posedge clk_1kHz or negedge rst_n) begin
-    if (!rst_n) begin
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
+    if (!i_rst_n) begin
       cs_pointer <= 0;
     end else begin
       if (display_state) begin
@@ -56,8 +56,8 @@ module KeyToCounter #(
     for (i = 0; i < 6; i = i + 1) begin : Gen_SimpleDebouncer
       SimpleDebouncer SimpleDebouncer_inst (
           .clk_50Hz(clk_50Hz),
-          .rst_n(rst_n),
-          .key(key[i]),
+          .i_rst_n(i_rst_n),
+          .i_key(i_key[i]),
           .key_state(key_state[i])
       );
     end
@@ -66,27 +66,27 @@ module KeyToCounter #(
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
-  ) CLK50Mto50Hz (
-      .clk(clk),
-      .rst_n(rst_n),
+  ) Clk50Mto50Hz (
+      .i_clk  (i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_50Hz)
   );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
-  ) CLK50Mto1k (
-      .clk(clk),
-      .rst_n(rst_n),
+  ) Clk50Mto1k (
+      .i_clk  (i_clk),
+      .i_rst_n(i_rst_n),
       .clk_div(clk_1kHz)
   );
   LED_CS LED_CS_inst (
-      .rst_n(rst_n),
+      .i_rst_n(i_rst_n),
       .cs_pointer(cs_pointer),
-      .cs(cs)
+      .o_cs(o_cs)
   );
   LED_Decoder LED_Decoder_inst (
-      .rst_n(rst_n),
-      .dig_ctrl(dig_ctrl),
+      .i_rst_n  (i_rst_n),
+      .dig_ctrl (dig_ctrl),
       .o_dig_sel(o_dig_sel)
   );
 
