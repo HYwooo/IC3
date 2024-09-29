@@ -15,7 +15,7 @@ module KeyToFreq #(
   bit [2:0] cs_pointer = 'b0;  //0~7
   bit [5:0] key_state;
 
-  bit clk_alt, clk_50Hz;
+  bit clk_1kHz, clk_50Hz;
   bit led_blink = 0;
   bit unsigned [$clog2(1000)-1:0] cnt = 'b0, cycle = 'd1000;
 
@@ -41,7 +41,7 @@ module KeyToFreq #(
   end
 
   //1kHz扫描片选
-  always @(posedge clk_alt or negedge i_rst_n) begin
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
     if (!i_rst_n) begin
       cs_pointer <= 0;
     end else begin
@@ -64,7 +64,7 @@ module KeyToFreq #(
     end
   end
   //闪灯
-  always @(posedge clk_alt or negedge i_rst_n) begin
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
     if (!i_rst_n) begin
       led_blink <= 0;
       cnt <= 0;
@@ -97,7 +97,7 @@ module KeyToFreq #(
   ) CLK50MtoAlt (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .o_clk_div(clk_alt)
+      .o_clk_div(clk_1kHz)
   );
 
   generate
