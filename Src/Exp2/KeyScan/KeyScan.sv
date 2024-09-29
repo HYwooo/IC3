@@ -45,7 +45,7 @@ module KeyScan #(
   ) CLK50Mto50Hz (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_50Hz)
+      .o_clk_div(clk_50Hz)
   );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
@@ -53,7 +53,7 @@ module KeyScan #(
   ) CLK50Mto1k (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1kHz)
+      .o_clk_div(clk_1kHz)
   );
   LED_CS LED_CS_inst (
       .i_rst_n(i_rst_n),

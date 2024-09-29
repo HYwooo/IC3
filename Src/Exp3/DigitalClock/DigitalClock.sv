@@ -144,7 +144,7 @@ module DigitalClock #(
   ) CLK50Mto1kHz (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1kHz)
+      .o_clk_div(clk_1kHz)
   );
   Divider #(
       .DIV_NUM(1000),
@@ -152,7 +152,7 @@ module DigitalClock #(
   ) CLK1kHzto1Hz (
       .i_clk(clk_1kHz),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1Hz)
+      .o_clk_div(clk_1Hz)
   );
   generate
     genvar i;

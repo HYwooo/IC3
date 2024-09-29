@@ -18,7 +18,7 @@ module KeyToCounter #(
 
   bit   [4:0] dig_ctrl = 'b0;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
-  logic [5:0] key_state;
+  logic [8:0] key_state;
   bit clk_1kHz, clk_50Hz, display_state = 0;
   bit [1:0] laststate = 'b1;
 
@@ -53,7 +53,7 @@ module KeyToCounter #(
   //
   generate
     genvar i;
-    for (i = 0; i < 6; i = i + 1) begin : Gen_SimpleDebouncer
+    for (i = 0; i < 9; i = i + 1) begin : Gen_SimpleDebouncer
       SimpleDebouncer SimpleDebouncer_inst (
           .clk_50Hz(clk_50Hz),
           .i_rst_n(i_rst_n),
@@ -64,12 +64,12 @@ module KeyToCounter #(
   endgenerate
   //
   Divider #(
-      .DIV_NUM(F_CLK / F_CLK_SLOW),
-      .DUTY(F_CLK / F_CLK_SLOW / 2)
+      .DIV_NUM(F_CLK / 50),
+      .DUTY(F_CLK / 50 / 2)
   ) Clk50Mto50Hz (
       .i_clk  (i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_50Hz)
+      .o_clk_div(clk_50Hz)
   );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
@@ -77,7 +77,7 @@ module KeyToCounter #(
   ) Clk50Mto1k (
       .i_clk  (i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1kHz)
+      .o_clk_div(clk_1kHz)
   );
   LED_CS LED_CS_inst (
       .i_rst_n(i_rst_n),

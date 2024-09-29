@@ -7,7 +7,7 @@ module ButtonDebouncer #(
     input i_clk,
     input i_rst_n,
     input i_key,
-    output logic key_state
+    output logic o_key_state
 );
   logic clk_1kHz;
 
@@ -38,13 +38,13 @@ module ButtonDebouncer #(
       end
     end
   end
-  assign key_state = ~state;
+  assign o_key_state = ~state;
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_DIV),
       .DUTY(F_CLK / F_CLK_DIV / 2)
   ) CLK50Mto1k (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1kHz)
+      .o_clk_div(clk_1kHz)
   );
 endmodule

@@ -6,6 +6,9 @@ module TrafficLight #(
     input i_clk,
     input i_rst_n,
     input logic [8:0] i_key,
+    input logic [3:0] i_key_col,
+    
+    output logic [3:0] o_key_row,
     output logic [3:0] o_led,  //[0]red [1]yellow [2]green
     output logic [7:0] o_cs,  //片选信号
     output logic [7:0] o_dig_sel
@@ -14,7 +17,7 @@ module TrafficLight #(
   logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
   logic [$clog2(65)-1:0] cnt;
-  logic [$clog2(10)-1:0] digits[1:0];  //四个数码管 其中两个是debug时显示cnt用的
+  logic [$clog2(10)-1:0] digits[1:0];  //2个数码管 其中两个是debug时显示cnt用的
   bit [3:0] led_state = '1;
   logic [1:0] state;
   localparam RED = 2'b01, YELLOW = 2'b10, GREEN = 2'b11;
@@ -91,7 +94,7 @@ module TrafficLight #(
   ) CLK50Mto1k (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1kHz)
+      .o_clk_div(clk_1kHz)
   );
   //1kHz分频产生1Hz信号
   Divider #(
@@ -100,7 +103,7 @@ module TrafficLight #(
   ) CLK1kto1Hz (
       .i_clk(clk_1kHz),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1Hz)
+      .o_clk_div(clk_1Hz)
   );
   //LED片选信号
   LED_CS LED_CS_inst (

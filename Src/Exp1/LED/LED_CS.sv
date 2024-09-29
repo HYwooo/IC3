@@ -2,14 +2,14 @@
 //译码器，生成片选信号
 module LED_CS (
     input i_rst_n,
-    input [2:0] cs_pointer,
+    input [2:0] i_cs_pointer,
     output logic [7:0] o_cs
 );
   always @(*) begin
     if (!i_rst_n) begin
       o_cs = 8'hFF;  //全选
     end else begin
-      unique case (cs_pointer)
+      unique case (i_cs_pointer)
         3'd0: o_cs = 8'b0000_0001;
         3'd1: o_cs = 8'b0000_0010;
         3'd2: o_cs = 8'b0000_0100;

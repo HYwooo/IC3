@@ -89,7 +89,7 @@ module KeyToFreq #(
   ) CLK50Mto50Hz (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_50Hz)
+      .o_clk_div(clk_50Hz)
   );
   Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
@@ -97,7 +97,7 @@ module KeyToFreq #(
   ) CLK50MtoAlt (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_alt)
+      .o_clk_div(clk_alt)
   );
 
   generate

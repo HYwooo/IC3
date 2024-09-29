@@ -41,7 +41,7 @@ module LED_Scan #(
   ) CLK50Mto1k (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1kHz)
+      .o_clk_div(clk_1kHz)
   );
   //1kHz分频产生1Hz信号
   Divider #(
@@ -50,20 +50,20 @@ module LED_Scan #(
   ) CLK1kto1Hz (
       .i_clk(clk_1kHz),
       .i_rst_n(i_rst_n),
-      .clk_div(clk_1Hz)
+      .o_clk_div(clk_1Hz)
   );
   //LED片选信号
   LED_CS LED_CS_inst (
 
       .i_rst_n(i_rst_n),
-      .cs_pointer(cs_pointer),
+      .i_cs_pointer(cs_pointer),
       .o_cs(o_cs)
   );
   //LED译码器
   LED_Decoder LED_Decoder_inst (
 
       .i_rst_n(i_rst_n),
-      .dig_ctrl(dig_ctrl),
+      .i_dig_ctrl(dig_ctrl),
       .o_dig_sel(o_dig_sel)
   );
 endmodule

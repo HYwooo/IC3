@@ -1,30 +1,88 @@
-`timescale 1ns / 1ns
-// Êä ³ö y[n]=0.5*x[n]+0.31*x[n-1]+0.63*x[n-2] ¡£ ÆäÖĞx[n],x[n-1],x[n-2]Îª 3 Î»¶ş½øÖÆÕûÊı£¬¼ÆËã½á¹ûÓÃÊ®½øÖÆÊıÏÔÊ¾¡¢±£ÁôÒ»Î»Ğ¡Êı
-//7Q4 Ğ¡Êıµãºó¶ş½øÖÆÊıÓĞ4Î»
-module FIR_Filter (
-    input i_clk,  // ÏµÍ³Ê±ÖÓ
-    input i_rst_n,  // ¸´Î»¼ü£¬µÍµçÆ½ÓĞĞ§
-    input signed [2:0] Xin,  // ÂË²¨Æ÷µÄÊäÈëÊı¾İ£¬ÊäÈëËÙÂÊ
-    output reg signed [6:0] Yout  // ÂË²¨Æ÷µÄÊä³öÊı¾İ
+module FIR_Filter #(
+    parameter F_CLK = 50000000,
+    parameter F_CLK_SLOW = 1000
+) (
+    input i_clk,  // ç³»ç»Ÿæ—¶é’Ÿ
+    input i_rst_n,  // å¤ä½é”®ï¼Œä½ç”µå¹³æœ‰æ•ˆ
+    input logic [8:0] i_key,
+
+    output logic [3:0] o_led,  //[0]red [1]yellow [2]green
+    output logic [7:0] o_cs,  //ç‰‡é€‰ä¿¡å·
+    output logic [7:0] o_dig_sel
 );
-  reg signed [2:0] Xin0, Xin1, Xin2;
-  // ½«ÊäÈëÊı¾İ´æÈëÒÆÎ»¼Ä´æÆ÷ÖĞ
-  always @(posedge i_clk or negedge i_rst_n)
+  logic clk_1kHz, clk_50Hz;
+  logic [2:0] Xin;  // æ»¤æ³¢å™¨çš„è¾“å…¥æ•°æ®ï¼Œè¾“å…¥é€Ÿç‡
+  logic [11:0] Yout;  // æ»¤æ³¢å™¨çš„è¾“å‡ºæ•°æ®
+
+  logic [4:0] dig_ctrl;  //æ§åˆ¶æ¯ä¸ªLEDçš„æ˜¾ç¤ºå†…å®¹ -> 0_X w/o dot,1_X w/ dot
+  logic [2:0] cs_pointer;  //0~7
+  logic [$clog2(10)-1:0] digits[7:0];  //2ä¸ªæ•°ç ç®¡ å…¶ä¸­ä¸¤ä¸ªæ˜¯debugæ—¶æ˜¾ç¤ºcntç”¨çš„
+  logic [8:0] key_state;
+
+  assign Xin[2] = ~key_state[5];
+  assign Xin[1] = ~key_state[4];
+  assign Xin[0] = ~key_state[3];
+  //1kHzæ‰«æç‰‡é€‰
+  always @(posedge clk_1kHz or negedge i_rst_n) begin
     if (!i_rst_n) begin
-      Xin0 <= 'd0;
-      Xin1 <= 'd0;
-      Xin2 <= 'd0;
+      cs_pointer <= 0;
     end else begin
-      if (|Xin) begin  //Xin°´Î»»ò
-        Xin2 = Xin1;  // ±íÊ¾°Ñ x(n-1) Êı¾İ´«µİµ½ x(n-2)
-        Xin1 = Xin0;  // ±íÊ¾°Ñ x(n) Êı¾İ´«µİµ½ x(n-1)
-        Xin0 = Xin;
-      end else begin  //ÊäÈëÎŞĞ§»òÈ«Îª0Ê±
-        Xin2 = Xin0;
-        Xin1 = Xin0;
-        Xin0 = 'd0;
-      end
-      //³Ë16ÊÇÎªÁË ½«Ğ¡Êıµã×óÒÆ4Î»
-      Yout <= 16 * (0.5 * Xin0 + 0.31 * Xin1 + 0.63 * Xin2);
+      if (cs_pointer) cs_pointer <= 0;  //åªç”¨4ä¸ªæ•°ç ç®¡
+      else cs_pointer <= cs_pointer + 1;
     end
+  end
+  //ç»„åˆé€»è¾‘å®ç°pointeråˆ°è¯‘ç å™¨çš„æ˜ å°„
+  always @(*) begin
+    if (!i_rst_n) dig_ctrl = 'b0;
+    else dig_ctrl = digits[cs_pointer];
+  end
+  assign digits[1] = (Yout / 10) % 10;
+  assign digits[0] = (Yout / 100) | 12'b0000_0001_0000;
+  generate
+    genvar i;
+    for (i = 0; i < 9; i = i + 1) begin : Gen_Debouncer
+      ButtonDebouncer ButtonDebouncer_inst (
+          .i_clk(clk),
+          .i_rst_n(i_rst_n),
+          .i_key(i_key[i]),
+          .o_key_state(key_state[i])
+      );
+    end
+  endgenerate
+  FIR_Filter_Core FIR_Filter_Core_inst (
+      .i_clk(~key_state[0]),
+      .i_rst_n(i_rst_n),
+      .Xin(Xin),
+      .Yout(Yout)
+  );
+  //åˆ†é¢‘äº§ç”Ÿ50Hzä¿¡å·
+  Divider #(
+      .DIV_NUM(F_CLK / 50),
+      .DUTY(F_CLK / 50 / 2)
+  ) Clk50Mto50Hz (
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
+      .o_clk_div(clk_50Hz)
+  );
+  //åˆ†é¢‘äº§ç”Ÿ1kHzä¿¡å·
+  Divider #(
+      .DIV_NUM(F_CLK / F_CLK_SLOW),
+      .DUTY(F_CLK / F_CLK_SLOW / 2)
+  ) CLK50Mto1k (
+      .i_clk(i_clk),
+      .i_rst_n(i_rst_n),
+      .o_clk_div(clk_1kHz)
+  );
+  //LEDç‰‡é€‰ä¿¡å·
+  LED_CS LED_CS_inst (
+      .i_rst_n(i_rst_n),
+      .i_cs_pointer(cs_pointer),
+      .o_cs(o_cs)
+  );
+  //LEDè¯‘ç å™¨
+  LED_Decoder LED_Decoder_inst (
+      .i_rst_n(i_rst_n),
+      .i_dig_ctrl(dig_ctrl),
+      .o_dig_sel(o_dig_sel)
+  );
 endmodule

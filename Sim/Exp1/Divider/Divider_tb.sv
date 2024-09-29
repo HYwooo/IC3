@@ -3,11 +3,11 @@
 module Divider_tb;
   logic i_clk;
   logic i_rst_n;
-  wire  clk_div;
+  wire  o_clk_div;
   Divider uut (
       i_clk,
       i_rst_n,
-      clk_div
+      o_clk_div
   );
 
 

@@ -2,7 +2,7 @@
 //用于将5位二进制输入转换为8位输出，用于控制7段数码管（及小数点）的显示内容
 module LED_Decoder (
     input i_rst_n,
-    input [4:0] dig_ctrl,  // 5 位输入，用于选择 7 段数码管的显示内容，最高位为小数点控制位
+    input [4:0] i_dig_ctrl,  // 5 位输入，用于选择 7 段数码管的显示内容，最高位为小数点控制位
     output reg [7:0] o_dig_sel  // 8 位输出，用于控制 7 段数码管（加小数点）的显示内容
 );
   logic [7:0] digit_code;
@@ -11,7 +11,7 @@ module LED_Decoder (
     if (!i_rst_n) begin
       digit_code = 'h00;  //全灭
     end else begin
-      unique case (dig_ctrl)
+      unique case (i_dig_ctrl)
         5'h00:   digit_code = 8'h3f;  //"0"
         5'h01:   digit_code = 8'h06;  //"1"
         5'h02:   digit_code = 8'h5b;  //"2"
