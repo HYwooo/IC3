@@ -5,10 +5,11 @@
 module FIR_Filter_Core (
     input i_clk,  // 时钟
     input i_rst_n,  // 复位键，低电平有效
-    input logic [2:0] Xin,  // 滤波器的输入数据，输入速率
+    input logic [2:0] Xin,  // 滤波器的输入数据
     output logic [11:0] Yout  // 滤波器的输出数据
 );
   logic [2:0] Xin0, Xin1, Xin2;
+  logic [11:0] Preout;
   // 将输入数据存入移位寄存器中
   always @(posedge i_clk or negedge i_rst_n)
     if (!i_rst_n) begin
@@ -18,15 +19,18 @@ module FIR_Filter_Core (
       Yout <= 'd0;
     end else begin
       if (|Xin) begin  //Xin按位或
-        Xin2 = Xin1;  // 表示把 x(n-1) 数据传递到 x(n-2)
-        Xin1 = Xin0;  // 表示把 x(n) 数据传递到 x(n-1)
-        Xin0 = Xin;
+        Xin2 <= Xin1;  // 表示把 x(n-1) 数据传递到 x(n-2)
+        Xin1 <= Xin0;  // 表示把 x(n) 数据传递到 x(n-1)
+        Xin0 <= Xin;
       end else begin  //输入无效或全为0时
-        Xin2 = Xin0;
-        Xin1 = Xin0;
-        Xin0 = 'd0;
+        Xin2 <= Xin0;
+        Xin1 <= Xin0;
+        Xin0 <= 'd0;
       end
       //Xin=3'b100时，输出为 {2.0[0],3.2[4],5.7[6]}
-      Yout <= ( ({{3{1'b0}}, Xin0, {6{1'b0}}} + {{8{1'b0}}, Xin0, {1{1'b0}}} - {{5{1'b0}}, Xin0, {4{1'b0}}}) + ({{4{1'b0}}, Xin1, {5{1'b0}}} - Xin1) +  ({{3{1'b0}}, Xin2, {6{1'b0}}} - Xin2) );
+      Preout<=( ({{3{1'b0}}, Xin0, {6{1'b0}}} + {{8{1'b0}}, Xin0, {1{1'b0}}} - {{5{1'b0}}, Xin0, {4{1'b0}}}) + ({{4{1'b0}}, Xin1, {5{1'b0}}} - Xin1) +  ({{3{1'b0}}, Xin2, {6{1'b0}}} - Xin2) );
+      if (Preout[3:0] > 4) begin
+        Yout <= Preout + 'd10;
+      end else Yout <= Preout;
     end
 endmodule

@@ -9,7 +9,7 @@ module SimpleDebouncer (
     if (!i_rst_n) begin
       o_key_state <= 1'b1;
     end else begin
-      o_key_state <= (i_key ^ o_key_state) & i_key;
+      o_key_state <=  i_key ;
     end
   end
 endmodule

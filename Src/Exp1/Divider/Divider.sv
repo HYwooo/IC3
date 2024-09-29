@@ -11,12 +11,12 @@ module Divider #(
   always @(posedge i_clk or negedge i_rst_n) begin
     if (!i_rst_n) begin
       cnt <= 'd0;
-      o_clk_div <= 0;
     end else begin
-      if (cnt == (DIV_NUM - 1)) cnt <= 'd0;
-      else cnt <= cnt + 1;
-      if (cnt < DUTY) o_clk_div <= 1;
-      else o_clk_div <= 0;
+      if (cnt == (DIV_NUM - 1)) begin
+        cnt <= 'd0;
+        o_clk_div <= 1;
+      end else cnt <= cnt + 1;
+      if (cnt == DUTY) o_clk_div <= 0;
     end
   end
 

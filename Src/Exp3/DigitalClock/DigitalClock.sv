@@ -35,75 +35,8 @@ module DigitalClock #(
   assign digits[7] = ss % 10;
 
   //////*************/没写完
-  bit [5:0] laststate = '1;
-  always @(posedge i_clk or negedge i_rst_n) begin
-    if (!i_rst_n) begin
-      laststate <= '1;
-    end else begin
-      //按下
-      if ((laststate[0] & !key_state[0])) begin
-        alt   <= 1;
-        //altss <= -1;
-      end
-      if ((laststate[1] & !key_state[1])) begin
-        alt   <= 1;
-        altss <= 1;
-      end
-      if ((laststate[2] & !key_state[2])) begin
-        alt   <= 1;
-        //altms <= -60;
-      end
-      if ((laststate[3] & !key_state[3])) begin
-        alt   <= 1;
-        altms <= 60;
-      end
-      if ((laststate[4] & !key_state[4])) begin
-        alt   <= 1;
-        //alths <= -3600;
-      end
-      if ((laststate[5] & !key_state[5])) begin
-        alt   <= 1;
-        alths <= 3600;
-      end
-      //弹起
-      if ((!laststate[0] & key_state[0])) begin
-        alt   <= 0;
-        altss <= 0;
-      end
-      if ((!laststate[1] & key_state[1])) begin
-        alt   <= 0;
-        altss <= 0;
-      end
-      if ((!laststate[2] & key_state[2])) begin
-        alt   <= 0;
-        altms <= 0;
-      end
-      if ((!laststate[3] & key_state[3])) begin
-        alt   <= 0;
-        altms <= 0;
-      end
-      if ((!laststate[4] & key_state[4])) begin
-        alt   <= 0;
-        alths <= 0;
-      end
-      if ((!laststate[5] & key_state[5])) begin
-        alt   <= 0;
-        alths <= 0;
-      end
-      //
-      laststate[0] <= key_state[0];
-      laststate[1] <= key_state[1];
-      laststate[2] <= key_state[2];
-      laststate[3] <= key_state[3];
-      laststate[4] <= key_state[4];
-      laststate[5] <= key_state[5];
-      //
-      ss <= seconds % 60;
-      mm <= (seconds / 60) % 60;
-      hh <= seconds / 3600;
-    end
 
-  end
+
 
   //: -> .
   always @(*) begin
@@ -121,7 +54,7 @@ module DigitalClock #(
     if (!i_rst_n) begin
       seconds <= 0;
     end else begin
-      if (seconds >= 86400 - 1) seconds <= 0;
+      if (seconds > 86400 - 1) seconds <= seconds - 86400;
       else begin
         if (alt) seconds <= seconds + alths + altms + altss;
         else seconds <= seconds + 1;
@@ -171,8 +104,8 @@ module DigitalClock #(
       .o_cs(o_cs)
   );
   LED_Decoder LED_Decoder_inst (
-      .i_rst_n(i_rst_n),
-      .dig_ctrl(dig_ctrl),
+      .i_rst_n  (i_rst_n),
+      .dig_ctrl (dig_ctrl),
       .o_dig_sel(o_dig_sel_wo_dot)
   );
 endmodule
