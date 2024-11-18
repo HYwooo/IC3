@@ -1,7 +1,7 @@
 `timescale 1ns / 1ns
 // 输 出 y[n]=0.5*x[n]+0.31*x[n-1]+0.63*x[n-2] 。 其中x[n],x[n-1],x[n-2]为 3 位二进制整数，计算结果用十进制数显示、保留一位小数
 //      100y[n]=50*x[n]+(32-1)*x[n-1]+(64-1)*x[n-2] 
-//7Q4 小数点后二进制数有4位 别搁着Q4了
+
 module FIR_Filter_Core (
     input i_clk,  // 时钟
     input i_rst_n,  // 复位键，低电平有效
@@ -29,6 +29,7 @@ module FIR_Filter_Core (
       end
       //Xin=3'b100时，输出为 {2.0[0],3.2[4],5.7[6]}
       Preout<=( ({{3{1'b0}}, Xin0, {6{1'b0}}} + {{8{1'b0}}, Xin0, {1{1'b0}}} - {{5{1'b0}}, Xin0, {4{1'b0}}}) + ({{4{1'b0}}, Xin1, {5{1'b0}}} - Xin1) +  ({{3{1'b0}}, Xin2, {6{1'b0}}} - Xin2) );
+      //四舍五入
       if ((|Preout[2:0]) & Preout[3]) Yout <= Preout + 'd10;
       else Yout <= Preout;
     end

@@ -11,7 +11,7 @@ module FIR_Filter #(
     output logic [7:0] o_dig_sel
 );
   logic clk_1kHz, clk_50Hz, clk_1Hz;
-  bit [2:0] Xin = '0;  // 滤波器的输入数据，输入速率
+  logic [2:0] Xin = '0;  // 滤波器的输入数据，输入速率
   logic [11:0] Yout;  // 滤波器的输出数据
   logic [4:0] dig_ctrl;  //控制每个LED的显示内容 -> 0_X w/o dot,1_X w/ dot
   logic [2:0] cs_pointer;  //0~7
