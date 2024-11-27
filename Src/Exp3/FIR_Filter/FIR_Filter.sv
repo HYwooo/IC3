@@ -84,14 +84,14 @@ module FIR_Filter #(
       .o_clk_div(clk_50Hz)
   );
   //分频产生1kHz信号
-  Divider #(
+  /* Divider #(
       .DIV_NUM(F_CLK / F_CLK_SLOW),
       .DUTY(F_CLK / F_CLK_SLOW / 2)
   ) CLK50Mto1k (
       .i_clk(i_clk),
       .i_rst_n(i_rst_n),
       .o_clk_div(clk_1kHz)
-  );
+  ); */
   //LED片选信号
   LED_CS LED_CS_inst (
       .i_rst_n(i_rst_n),
