@@ -1,4 +1,4 @@
-`timescale 1ns/1ns
+`timescale 1ns / 1ns
 module FIR_Filter_tb;
   // Testbench signals
   reg sys_clk;
@@ -8,10 +8,10 @@ module FIR_Filter_tb;
 
   // Instantiate the FIR_Filter module
   FIR_Filter uut (
-    .sys_clk(sys_clk),
-    .sys_rst_n(sys_rst_n),
-    .Xin(Xin),
-    .Yout(Yout)
+      .sys_clk(sys_clk),
+      .sys_rst_n(sys_rst_n),
+      .Xin(Xin),
+      .Yout(Yout)
   );
 
   // Clock generation
